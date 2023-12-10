@@ -1,6 +1,11 @@
 # nippo-cli
 The tool to power my nippo.
 
+## Install `nippo` command
+```
+go install github.com/c18t/nippo-cli/nippo@latest
+```
+
 ## Usage
 ### Setup
 ```console
@@ -21,7 +26,8 @@ nippo deploy
 ```
 > docker compose up -d
 > docker compose exec nippo-cli bash
-$ go run nippo.go
+$ go run nippo/nippo.go
+$ make
 ```
 
 ## License
