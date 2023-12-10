@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  nippo-cli:
+    build: ./.docker
+    tty: true
+    volumes:
+      - type: bind
+        source: .
+        target: /opt/src
+    working_dir: /opt/src
