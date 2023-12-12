@@ -1,10 +1,17 @@
 version: "3.9"
 services:
   nippo-cli:
-    build: ./.docker
-    tty: true
+    build:
+      context: ./.devcontainer
+      args: &args
+        - WORKING_DIR=/workspaces/nippo-cli
+        - CONTAINER_USER=user
+        - DEBUG_PORT=2345
+    stop_signal: SIGKILL
+    ports:
+      - ${DEBUG_PORT:-2345}:${DEBUG_PORT:-2345}
     volumes:
       - type: bind
-        source: .
-        target: /opt/src
-    working_dir: /opt/src
+        source: $PWD
+        target: ${WORKING_DIR:-/workspaces/nippo-cli}
+    environment: *args
