@@ -4,7 +4,7 @@
 		{
 			"type": "shell",
 			"label": "go: build remote package for debugging",
-			"command": "docker compose exec nippo-cli make debug",
+			"command": "docker compose exec --user user nippo-cli make debug",
 			"group": "build",
 			"detail": "make debug"
 		}

@@ -4,14 +4,17 @@ services:
     build:
       context: ./.devcontainer
       args: &args
-        - WORKING_DIR=/workspaces/nippo-cli
-        - CONTAINER_USER=user
-        - DEBUG_PORT=2345
+        - WORKING_DIR=${WORKING_DIR:-/workspaces/nippo-cli}
+        - CONTAINER_USER=${CONTAINER_USER:-user}
+        - DEBUG_PORT=${DEBUG_PORT:-2345}
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
     stop_signal: SIGKILL
     ports:
       - ${DEBUG_PORT:-2345}:${DEBUG_PORT:-2345}
     volumes:
       - type: bind
+        consistency: cached
         source: $PWD
         target: ${WORKING_DIR:-/workspaces/nippo-cli}
     environment: *args

@@ -1,5 +1,8 @@
-# Created by https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,windows,macos,go
-# Edit at https://www.toptal.com/developers/gitignore?templates=vim,visualstudiocode,windows,macos,go
+# Created by https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,windows,macos,dotenv,go
+# Edit at https://www.toptal.com/developers/gitignore?templates=vim,visualstudiocode,windows,macos,dotenv,go
+
+### dotenv ###
+.env
 
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
@@ -123,7 +126,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,windows,macos,go
+# End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,windows,macos,dotenv,go
 
 ## working dir ##
 /bin

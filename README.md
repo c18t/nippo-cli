@@ -25,7 +25,7 @@ nippo deploy
 ## Setting up your development environment
 ```
 > docker compose up -d
-> docker compose exec nippo-cli bash
+> docker compose exec --user user nippo-cli bash
 $ go run nippo/nippo.go
 $ make
 ```
