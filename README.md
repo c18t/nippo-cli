@@ -8,24 +8,28 @@ go install github.com/c18t/nippo-cli/nippo@latest
 
 ## Usage
 ### Setup
-```console
+```shell
 nippo init
 ```
 
 ### Build
-```console
+```shell
 nippo build
 ```
 
 ### Publish
-```console
+```shell
 nippo deploy
 ```
 
 ## Setting up your development environment
-```
-> docker compose up -d
-> docker compose exec nippo-cli bash
+```console
+// host
+$ (echo UID=$(id -u) & echo GID=$(id -g)) > .env
+$ docker compose up -d
+$ docker compose exec nippo-cli bash
+
+// container
 $ go run nippo/nippo.go
 $ make
 ```
