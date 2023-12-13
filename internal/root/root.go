@@ -33,7 +33,7 @@ func InitConfig() {
 
 		defaultConfigDir := path.Join(home, ".config")
 		configDir := os.Getenv("XDG_CONFIG_HOME")
-		if configDir == "" || path.IsAbs(configDir) == false {
+		if configDir == "" || !path.IsAbs(configDir) {
 			configDir = defaultConfigDir
 		}
 		configPath := path.Join(configDir, "nippo")
