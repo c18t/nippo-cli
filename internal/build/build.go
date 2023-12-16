@@ -4,13 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
+	"strings"
 
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -25,8 +31,100 @@ func CreateCmdFunc() RunEFunc {
 		err := downloadNippoData()
 		cobra.CheckErr(err)
 
+		err = buildIndexPage()
+		cobra.CheckErr(err)
+
 		return nil
 	}
+}
+
+// page content
+type Content struct {
+	PageTitle string
+	Date      string
+	Content   template.HTML
+}
+
+func buildIndexPage() error {
+	// Find home directory.
+	home, err := os.UserHomeDir()
+	cobra.CheckErr(err)
+
+	defaultDataDir := path.Join(home, ".local", "share")
+	dataDir := os.Getenv("XDG_DATA_HOME")
+	if dataDir == "" || !path.IsAbs(dataDir) {
+		dataDir = defaultDataDir
+	}
+	dataDir = path.Join(dataDir, "nippo")
+
+	t, err := template.ParseGlob(path.Join(dataDir, "templates", "*.html"))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	tmpl := template.Must(template.Must(t.Lookup("layout").Clone()).AddParseTree("content", t.Lookup("index").Tree))
+
+	f, err := os.Create("index.html")
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer f.Close()
+
+	// XDG_CACHE_HOMEディレクトリを取得
+	defaultCacheDir := path.Join(home, ".cache")
+	cacheDir := os.Getenv("XDG_CACHE_HOME")
+	if cacheDir == "" || !path.IsAbs(cacheDir) {
+		cacheDir = defaultCacheDir
+	}
+	cacheDir = path.Join(cacheDir, "nippo", "md")
+
+	files, err := os.ReadDir(cacheDir)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
+	var fileName string
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		fileName = file.Name()
+		continue
+	}
+
+	nippo, err := os.Open(path.Join(cacheDir, fileName))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer nippo.Close()
+	nippoData, err := io.ReadAll(nippo)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	tmpl.ExecuteTemplate(f, "layout", Content{
+		Date:    strings.TrimSuffix(fileName, filepath.Ext(fileName)),
+		Content: template.HTML(parseMarkdownToHtml(nippoData)),
+	})
+	return nil
+}
+
+func parseMarkdownToHtml(nippoData []byte) []byte {
+	extensions := parser.CommonExtensions | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(nippoData)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return markdown.Render(doc, renderer)
 }
 
 // download nippo data in google drive
@@ -62,43 +160,15 @@ func downloadNippoData() error {
 	}
 
 	r, err := srv.Files.List().
-		Q("parents in '1HNSRS2tJI2t7DKP_8XQJ2NTleSH-rs4y'").
-		OrderBy("modifiedTime").
+		Q("parents in '1FZEaqRa8NmuRheHjTiW-_gUP3E5Ddw2T' and fileExtension = 'md'").
+		// OrderBy("modifiedTime desc").
+		OrderBy("name desc").
 		Fields("nextPageToken, files(id, name, fileExtension)").
-		PageSize(100).Do()
+		PageSize(3).Do()
 	if err != nil {
 		fmt.Printf("Unable to retrieve files: %v\n", err)
 	}
 	fmt.Println("Files:")
-	if len(r.Files) == 0 {
-		fmt.Println("No files found.")
-	} else {
-		for _, i := range r.Files {
-			fmt.Printf("%s (%s)\n", i.Name, i.Id)
-			if i.FileExtension == "md" {
-				g, err := srv.Files.Get(i.Id).Download()
-				if err != nil {
-					fmt.Printf("Unable to retrieve files: %v\n", err)
-					continue
-				}
-				defer g.Body.Close()
-
-				err = downloadFile(i.Name, g)
-				if err != nil {
-					fmt.Printf("download failed: %v\n", err)
-					continue
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func downloadFile(filename string, resp *http.Response) error {
-	// Find home directory.
-	home, err := os.UserHomeDir()
-	cobra.CheckErr(err)
 
 	// XDG_CACHE_HOMEディレクトリを取得
 	defaultCacheDir := path.Join(home, ".cache")
@@ -106,16 +176,44 @@ func downloadFile(filename string, resp *http.Response) error {
 	if cacheDir == "" || !path.IsAbs(cacheDir) {
 		cacheDir = defaultCacheDir
 	}
-	cacheDir = path.Join(cacheDir, "nippo")
+	cacheDir = path.Join(cacheDir, "nippo", "md")
+	err = os.MkdirAll(cacheDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		fmt.Println(err)
+		return nil
+	}
 
-	f, err := os.Create(filepath.Join(cacheDir, filename))
+	if len(r.Files) == 0 {
+		fmt.Println("No files found.")
+	} else {
+		for _, i := range r.Files {
+			fmt.Printf("%s (%s)\n", i.Name, i.Id)
+			err = downloadFile(srv.Files, i, cacheDir)
+			if err != nil {
+				fmt.Printf("download failed: %v\n", err)
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
+func downloadFile(fsrv *drive.FilesService, i *drive.File, folderPath string) error {
+	g, err := fsrv.Get(i.Id).Download()
+	if err != nil {
+		return err
+	}
+	defer g.Body.Close()
+
+	f, err := os.Create(filepath.Join(folderPath, i.Name))
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
+	_, err = io.Copy(f, g.Body)
 	if err != nil {
 		fmt.Println(err)
 		return nil

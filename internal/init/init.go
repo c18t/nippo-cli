@@ -179,7 +179,16 @@ func unzip(zipFile, destDir string) error {
 		}
 
 		// 出力先ファイル名を生成
-		outFile := filepath.Join(destDir, filepath.Base(f.Name))
+		relPath, err := filepath.Rel("nippo-main", f.Name)
+		if err != nil {
+			return err
+		}
+		outFile := filepath.Join(destDir, relPath)
+		outDir := filepath.Dir(outFile)
+		err = os.MkdirAll(outDir, 0755)
+		if err != nil && !os.IsExist(err) {
+			return err
+		}
 
 		// ファイルを書き込む
 		dest, err := os.Create(outFile)
