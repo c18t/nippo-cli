@@ -12,11 +12,10 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
-	"strings"
 
-	"github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/html"
-	"github.com/gomarkdown/markdown/parser"
+	"github.com/c18t/nippo-cli/internal/core"
+	"github.com/c18t/nippo-cli/internal/domain/model"
+	"github.com/c18t/nippo-cli/internal/domain/service"
 	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -26,9 +25,15 @@ import (
 
 type RunEFunc func(cmd *cobra.Command, args []string) error
 
+var ts service.ITemplateService
+
 func CreateCmdFunc() RunEFunc {
 	return func(cmd *cobra.Command, args []string) error {
-		err := downloadNippoData()
+		var err error
+		ts, err = service.NewTemplateService()
+		cobra.CheckErr(err)
+
+		err = downloadNippoData()
 		cobra.CheckErr(err)
 
 		err = buildIndexPage()
@@ -46,23 +51,31 @@ type Content struct {
 }
 
 func buildIndexPage() error {
-	// Find home directory.
-	home, err := os.UserHomeDir()
-	cobra.CheckErr(err)
-
-	defaultDataDir := path.Join(home, ".local", "share")
-	dataDir := os.Getenv("XDG_DATA_HOME")
-	if dataDir == "" || !path.IsAbs(dataDir) {
-		dataDir = defaultDataDir
-	}
-	dataDir = path.Join(dataDir, "nippo")
-
-	t, err := template.ParseGlob(path.Join(dataDir, "templates", "*.html"))
+	cacheDir := path.Join(core.Cfg.GetCacheDir(), "md")
+	files, err := os.ReadDir(cacheDir)
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
-	tmpl := template.Must(template.Must(t.Lookup("layout").Clone()).AddParseTree("content", t.Lookup("index").Tree))
+	sort.Slice(files, func(i, j int) bool { return files[i].Name() > files[j].Name() })
+	var fileName string
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		fileName = file.Name()
+		break
+	}
+	nippo, err := model.NewNippo(path.Join(cacheDir, fileName))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	nippoHtml, err := nippo.GetHtml()
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
 
 	f, err := os.Create("index.html")
 	if err != nil {
@@ -71,60 +84,11 @@ func buildIndexPage() error {
 	}
 	defer f.Close()
 
-	// XDG_CACHE_HOMEディレクトリを取得
-	defaultCacheDir := path.Join(home, ".cache")
-	cacheDir := os.Getenv("XDG_CACHE_HOME")
-	if cacheDir == "" || !path.IsAbs(cacheDir) {
-		cacheDir = defaultCacheDir
-	}
-	cacheDir = path.Join(cacheDir, "nippo", "md")
-
-	files, err := os.ReadDir(cacheDir)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
-	var fileName string
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		fileName = file.Name()
-		continue
-	}
-
-	nippo, err := os.Open(path.Join(cacheDir, fileName))
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	defer nippo.Close()
-	nippoData, err := io.ReadAll(nippo)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	tmpl.ExecuteTemplate(f, "layout", Content{
-		Date:    strings.TrimSuffix(fileName, filepath.Ext(fileName)),
-		Content: template.HTML(parseMarkdownToHtml(nippoData)),
+	err = ts.SaveTo(f, "index", Content{
+		Date:    string(nippo.Date),
+		Content: template.HTML(nippoHtml),
 	})
-	return nil
-}
-
-func parseMarkdownToHtml(nippoData []byte) []byte {
-	extensions := parser.CommonExtensions | parser.NoEmptyLineBeforeBlock
-	p := parser.NewWithExtensions(extensions)
-	doc := p.Parse(nippoData)
-
-	// create HTML renderer with extensions
-	htmlFlags := html.CommonFlags
-	opts := html.RendererOptions{Flags: htmlFlags}
-	renderer := html.NewRenderer(opts)
-
-	return markdown.Render(doc, renderer)
+	return err
 }
 
 // download nippo data in google drive

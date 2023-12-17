@@ -7,7 +7,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/c18t/nippo-cli/internal/root"
+	"github.com/c18t/nippo-cli/internal/cmd/root"
 	"github.com/spf13/cobra"
 )
 

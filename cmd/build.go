@@ -5,7 +5,7 @@ This file is part of CLI application nippo-cli.
 package cmd
 
 import (
-	"github.com/c18t/nippo-cli/internal/build"
+	"github.com/c18t/nippo-cli/internal/cmd/build"
 	"github.com/spf13/cobra"
 )
 
