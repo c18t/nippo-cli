@@ -45,7 +45,17 @@ func (c *buildController) Exec(cmd *cobra.Command, args []string) error {
 	err = downloadNippoData()
 	cobra.CheckErr(err)
 
+	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
+	err = os.RemoveAll(outputDir)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
 	err = buildIndexPage()
+	cobra.CheckErr(err)
+
+	err = buildNippoPage()
 	cobra.CheckErr(err)
 
 	return nil
@@ -85,7 +95,14 @@ func buildIndexPage() error {
 		return nil
 	}
 
-	f, err := os.Create("index.html")
+	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
+	err = os.MkdirAll(outputDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		fmt.Println(err)
+		return nil
+	}
+
+	f, err := os.Create(path.Join(outputDir, "index.html"))
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -99,20 +116,59 @@ func buildIndexPage() error {
 	return err
 }
 
+func buildNippoPage() error {
+	cacheDir := path.Join(core.Cfg.GetCacheDir(), "md")
+	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
+	err := os.MkdirAll(outputDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		fmt.Println(err)
+		return nil
+	}
+
+	files, err := os.ReadDir(cacheDir)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Name() > files[j].Name() })
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		nippo, err := model.NewNippo(path.Join(cacheDir, file.Name()))
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		nippoHtml, err := nippo.GetHtml()
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+
+		f, err := os.Create(path.Join(outputDir, fmt.Sprintf("%v.html", nippo.Date)))
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		defer f.Close()
+
+		err = ts.SaveTo(f, "nippo", Content{
+			PageTitle: string(nippo.Date),
+			Date:      string(nippo.Date),
+			Content:   template.HTML(nippoHtml),
+		})
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+	}
+	return nil
+}
+
 // download nippo data in google drive
 func downloadNippoData() error {
-	// Find home directory.
-	home, err := os.UserHomeDir()
-	cobra.CheckErr(err)
-
-	defaultDataDir := path.Join(home, ".local", "share")
-	dataDir := os.Getenv("XDG_DATA_HOME")
-	if dataDir == "" || !path.IsAbs(dataDir) {
-		dataDir = defaultDataDir
-	}
-	dataDir = path.Join(dataDir, "nippo")
-
-	b, err := os.ReadFile(path.Join(dataDir, "credentials.json"))
+	b, err := os.ReadFile(path.Join(core.Cfg.GetDataDir(), "credentials.json"))
 	if err != nil {
 		fmt.Printf("Unable to read client secret file: %v\n", err)
 		return nil
@@ -136,19 +192,13 @@ func downloadNippoData() error {
 		// OrderBy("modifiedTime desc").
 		OrderBy("name desc").
 		Fields("nextPageToken, files(id, name, fileExtension)").
-		PageSize(3).Do()
+		PageSize(30).Do()
 	if err != nil {
 		fmt.Printf("Unable to retrieve files: %v\n", err)
 	}
 	fmt.Println("Files:")
 
-	// XDG_CACHE_HOMEディレクトリを取得
-	defaultCacheDir := path.Join(home, ".cache")
-	cacheDir := os.Getenv("XDG_CACHE_HOME")
-	if cacheDir == "" || !path.IsAbs(cacheDir) {
-		cacheDir = defaultCacheDir
-	}
-	cacheDir = path.Join(cacheDir, "nippo", "md")
+	cacheDir := path.Join(core.Cfg.GetCacheDir(), "md")
 	err = os.MkdirAll(cacheDir, 0755)
 	if err != nil && !os.IsExist(err) {
 		fmt.Println(err)
