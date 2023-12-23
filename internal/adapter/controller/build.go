@@ -1,4 +1,4 @@
-package build
+package controller
 
 import (
 	"context"
@@ -23,24 +23,32 @@ import (
 	"google.golang.org/api/option"
 )
 
-type RunEFunc func(cmd *cobra.Command, args []string) error
+type BuildController interface {
+	core.Controller
+}
+
+type buildController struct {
+	templateService service.ITemplateService
+}
+
+func NewBuildController(ts service.ITemplateService) BuildController {
+	return &buildController{ts}
+}
 
 var ts service.ITemplateService
 
-func CreateCmdFunc() RunEFunc {
-	return func(cmd *cobra.Command, args []string) error {
-		var err error
-		ts, err = service.NewTemplateService()
-		cobra.CheckErr(err)
+func (c *buildController) Exec(cmd *cobra.Command, args []string) error {
+	var err error
+	ts = service.NewTemplateService()
+	cobra.CheckErr(err)
 
-		err = downloadNippoData()
-		cobra.CheckErr(err)
+	err = downloadNippoData()
+	cobra.CheckErr(err)
 
-		err = buildIndexPage()
-		cobra.CheckErr(err)
+	err = buildIndexPage()
+	cobra.CheckErr(err)
 
-		return nil
-	}
+	return nil
 }
 
 // page content
@@ -203,14 +211,14 @@ func getClient(config *oauth2.Config) *http.Client {
 	dataDir = path.Join(dataDir, "nippo")
 	tok, err := tokenFromFile(path.Join(dataDir, "token.json"))
 	if err != nil {
-		tok = getTokenFromWeb(config)
-		saveToken(tokFile, tok)
+		tok = getTokenFromWeb1(config)
+		saveToken1(tokFile, tok)
 	}
 	return config.Client(context.Background(), tok)
 }
 
 // Request a token from the web, then returns the retrieved token.
-func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
+func getTokenFromWeb1(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the "+
 		"authorization code: \n%v\n", authURL)
@@ -240,7 +248,7 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 }
 
 // Saves a token to a file path.
-func saveToken(path string, token *oauth2.Token) {
+func saveToken1(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {

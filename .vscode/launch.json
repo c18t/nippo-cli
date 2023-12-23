@@ -9,7 +9,8 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/nippo"
+      "program": "${workspaceFolder}/nippo",
+      "args": []
     },
     {
       "name": "Launch Remote Package",
@@ -25,8 +26,13 @@
         {
           "from": "${workspaceFolder}",
           "to": "/workspaces/nippo-cli"
+        },
+        {
+          "from": "${userHome}/.go",
+          "to": "/go"
         }
-      ]
+      ],
+      "args": []
     }
   ]
 }

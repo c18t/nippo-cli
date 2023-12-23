@@ -8,7 +8,6 @@ import (
 )
 
 type Config struct {
-	homeDir   string
 	configDir string
 	dataDir   string
 	cacheDir  string
@@ -21,7 +20,7 @@ func (c *Config) GetConfigDir() string {
 		return c.configDir
 	}
 
-	defaultConfigDir := path.Join(c.homeDir, ".config")
+	defaultConfigDir := path.Join(c.homeDir(), ".config")
 	configDir := os.Getenv("XDG_CONFIG_HOME")
 	if configDir == "" || !path.IsAbs(configDir) {
 		configDir = defaultConfigDir
@@ -35,7 +34,7 @@ func (c *Config) GetDataDir() string {
 		return c.dataDir
 	}
 
-	defaultDataDir := path.Join(c.homeDir, ".local", "share")
+	defaultDataDir := path.Join(c.homeDir(), ".local", "share")
 	dataDir := os.Getenv("XDG_DATA_HOME")
 	if dataDir == "" || !path.IsAbs(dataDir) {
 		dataDir = defaultDataDir
@@ -49,7 +48,7 @@ func (c *Config) GetCacheDir() string {
 		return c.cacheDir
 	}
 
-	defaultCacheDir := path.Join(c.homeDir, ".cache")
+	defaultCacheDir := path.Join(c.homeDir(), ".cache")
 	cacheDir := os.Getenv("XDG_CACHE_HOME")
 	if cacheDir == "" || !path.IsAbs(cacheDir) {
 		cacheDir = defaultCacheDir
@@ -62,14 +61,9 @@ func (c *Config) LoadConfig(filePath string) error {
 	if filePath != "" {
 		viper.SetConfigFile(filePath)
 	} else {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			home = ""
-		}
-		c.homeDir = home
 		viper.AddConfigPath(c.GetDataDir())
 		viper.SetConfigType("toml")
-		viper.SetConfigName(".nippo")
+		viper.SetConfigName("nippo")
 	}
 
 	viper.AutomaticEnv()
@@ -77,4 +71,12 @@ func (c *Config) LoadConfig(filePath string) error {
 		return err
 	}
 	return viper.Unmarshal(&c)
+}
+
+func (c *Config) homeDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = ""
+	}
+	return home
 }

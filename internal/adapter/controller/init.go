@@ -1,4 +1,4 @@
-package init
+package controller
 
 import (
 	"archive/zip"
@@ -11,27 +11,32 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/drive/v3"
+	"google.golang.org/api/drive/v2"
 )
 
-type RunEFunc func(cmd *cobra.Command, args []string) error
+type InitController interface {
+	core.Controller
+}
+type initController struct{}
 
-func CreateCmdFunc() RunEFunc {
-	return func(cmd *cobra.Command, args []string) error {
+func NewInitController() InitController {
+	return &initController{}
+}
 
-		var err error
+func (c *initController) Exec(cmd *cobra.Command, args []string) error {
+	var err error
 
-		err = downloadProject()
-		cobra.CheckErr(err)
+	err = downloadProject()
+	cobra.CheckErr(err)
 
-		err = saveDriveToken()
-		cobra.CheckErr(err)
+	err = saveDriveToken()
+	cobra.CheckErr(err)
 
-		return nil
-	}
+	return nil
 }
 
 // プロジェクトのダウンロード
