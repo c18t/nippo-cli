@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/model"
@@ -45,12 +46,8 @@ func (c *buildController) Exec(cmd *cobra.Command, args []string) error {
 	err = downloadNippoData()
 	cobra.CheckErr(err)
 
-	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
-	err = os.RemoveAll(outputDir)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
+	err = clearBuildCache()
+	cobra.CheckErr(err)
 
 	err = buildIndexPage()
 	cobra.CheckErr(err)
@@ -66,6 +63,28 @@ type Content struct {
 	PageTitle string
 	Date      string
 	Content   template.HTML
+}
+
+func clearBuildCache() error {
+	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
+	files, err := os.ReadDir(outputDir)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		fileName := file.Name()
+		if strings.HasSuffix(fileName, ".html") {
+			err = os.Remove(path.Join(outputDir, fileName))
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return nil
 }
 
 func buildIndexPage() error {
