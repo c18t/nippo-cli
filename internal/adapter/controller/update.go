@@ -19,6 +19,9 @@ func NewUpdateController() UpdateController {
 }
 
 func (c *updateController) Exec(cmd *cobra.Command, args []string) error {
-	fmt.Println("update called")
+	fmt.Print("update project files... ")
+	err := downloadProject()
+	cobra.CheckErr(err)
+	fmt.Println("ok.")
 	return nil
 }
