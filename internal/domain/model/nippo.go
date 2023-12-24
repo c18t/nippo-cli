@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
@@ -17,7 +18,13 @@ type Nippo struct {
 	FilePath string
 }
 
-type NippoDate string
+type NippoDate interface {
+	PathString() string
+	TitleString() string
+}
+type nippoDate struct {
+	time time.Time
+}
 
 func NewNippo(filePath string) (Nippo, error) {
 	nippo := Nippo{}
@@ -32,7 +39,11 @@ func NewNippo(filePath string) (Nippo, error) {
 }
 
 func NewNippoDate(filePath string) NippoDate {
-	return NippoDate(strings.TrimSuffix(path.Base(filePath), ".md"))
+	date, err := time.Parse("20060102", strings.TrimSuffix(path.Base(filePath), ".md"))
+	if err != nil {
+		panic(err)
+	}
+	return &nippoDate{date}
 }
 
 func (n *Nippo) GetMarkdown() ([]byte, error) {
@@ -67,4 +78,13 @@ func checkNippoIsExist(filePath string) error {
 		return fmt.Errorf("nippo not found: filePath=%v", filePath)
 	}
 	return nil
+}
+
+func (date *nippoDate) PathString() string {
+	return fmt.Sprintf("%04d%02d%02d", date.time.Year(), date.time.Month(), date.time.Day())
+}
+
+func (date *nippoDate) TitleString() string {
+	return fmt.Sprintf("%02d/%02d %s", date.time.Month(), date.time.Day(),
+		strings.ToLower(date.time.Weekday().String()[:3]))
 }

@@ -129,7 +129,7 @@ func buildIndexPage() error {
 	defer f.Close()
 
 	err = ts.SaveTo(f, "index", Content{
-		Date:    string(nippo.Date),
+		Date:    nippo.Date.TitleString(),
 		Content: template.HTML(nippoHtml),
 	})
 	return err
@@ -165,7 +165,7 @@ func buildNippoPage() error {
 			return nil
 		}
 
-		f, err := os.Create(path.Join(outputDir, fmt.Sprintf("%v.html", nippo.Date)))
+		f, err := os.Create(path.Join(outputDir, fmt.Sprintf("%v.html", nippo.Date.PathString())))
 		if err != nil {
 			fmt.Println(err)
 			return nil
@@ -173,8 +173,8 @@ func buildNippoPage() error {
 		defer f.Close()
 
 		err = ts.SaveTo(f, "nippo", Content{
-			PageTitle: string(nippo.Date),
-			Date:      string(nippo.Date),
+			PageTitle: nippo.Date.PathString(),
+			Date:      nippo.Date.TitleString(),
 			Content:   template.HTML(nippoHtml),
 		})
 		if err != nil {
