@@ -36,7 +36,7 @@ func init() {
 }
 
 func createInitCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.CleanController) error {
+	_ = inject.Container.Invoke(func(c controller.InitController) error {
 		initC = c
 		return nil
 	})

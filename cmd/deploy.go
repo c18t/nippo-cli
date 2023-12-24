@@ -36,7 +36,7 @@ func init() {
 }
 
 func createDeployCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.CleanController) error {
+	_ = inject.Container.Invoke(func(c controller.DeployController) error {
 		deploy = c
 		return nil
 	})

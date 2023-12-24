@@ -36,7 +36,7 @@ func init() {
 }
 
 func createUpdateCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.RootController) error {
+	_ = inject.Container.Invoke(func(c controller.UpdateController) error {
 		update = c
 		return nil
 	})
