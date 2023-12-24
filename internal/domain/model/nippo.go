@@ -21,6 +21,11 @@ type Nippo struct {
 type NippoDate interface {
 	PathString() string
 	TitleString() string
+
+	Year() int
+	Month() time.Month
+	Day() int
+	Weekday() time.Weekday
 }
 type nippoDate struct {
 	time time.Time
@@ -80,6 +85,10 @@ func checkNippoIsExist(filePath string) error {
 	return nil
 }
 
+func (date *nippoDate) String() string {
+	return date.PathString()
+}
+
 func (date *nippoDate) PathString() string {
 	return fmt.Sprintf("%04d%02d%02d", date.time.Year(), date.time.Month(), date.time.Day())
 }
@@ -87,4 +96,20 @@ func (date *nippoDate) PathString() string {
 func (date *nippoDate) TitleString() string {
 	return fmt.Sprintf("%02d/%02d %s", date.time.Month(), date.time.Day(),
 		strings.ToLower(date.time.Weekday().String()[:3]))
+}
+
+func (date *nippoDate) Year() int {
+	return date.time.Year()
+}
+
+func (date *nippoDate) Month() time.Month {
+	return date.time.Month()
+}
+
+func (date *nippoDate) Day() int {
+	return date.time.Day()
+}
+
+func (date *nippoDate) Weekday() time.Weekday {
+	return date.time.Weekday()
 }

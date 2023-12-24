@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/model"
@@ -55,6 +56,9 @@ func (c *buildController) Exec(cmd *cobra.Command, args []string) error {
 	err = buildNippoPage()
 	cobra.CheckErr(err)
 
+	err = buildArchivePage()
+	cobra.CheckErr(err)
+
 	return nil
 }
 
@@ -63,6 +67,12 @@ type Content struct {
 	PageTitle string
 	Date      string
 	Content   template.HTML
+}
+
+type Archive struct {
+	PageTitle string
+	Date      string
+	Calender  *model.Calender
 }
 
 func clearBuildCache() error {
@@ -181,6 +191,67 @@ func buildNippoPage() error {
 			fmt.Println(err)
 			return nil
 		}
+	}
+	return nil
+}
+
+func buildArchivePage() error {
+	cacheDir := path.Join(core.Cfg.GetCacheDir(), "md")
+	outputDir := path.Join(core.Cfg.GetCacheDir(), "output", "archive")
+	err := os.MkdirAll(outputDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		fmt.Println(err)
+		return nil
+	}
+
+	files, err := os.ReadDir(cacheDir)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
+
+	month, err := time.Parse("20060102.md", files[0].Name())
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	nippoList := []model.Nippo{}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		nippo, err := model.NewNippo(path.Join(cacheDir, file.Name()))
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		nippoList = append(nippoList, nippo)
+	}
+
+	calender, err := model.NewCalender(month, nippoList)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	archiveFile := fmt.Sprintf("%04d%02d.html", calender.YearMonth.Year, calender.YearMonth.Month)
+	f, err := os.Create(path.Join(outputDir, archiveFile))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer f.Close()
+
+	err = ts.SaveTo(f, "calender", Archive{
+		PageTitle: calender.YearMonth.PathString(),
+		Date:      calender.YearMonth.TitleString(),
+		Calender:  calender,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return nil
 	}
 	return nil
 }
