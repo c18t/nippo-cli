@@ -22,7 +22,7 @@ func NewDeployController() DeployController {
 func (c *deployController) Exec(cmd *cobra.Command, args []string) error {
 	fmt.Print("deploy to vercel... ")
 	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
-	log, err := exec.Command("vercel --cwd " + outputDir + " --prod").Output()
+	log, err := exec.Command("vercel", "--cwd", outputDir, "--prod").Output()
 	if err != nil {
 		fmt.Printf("err: %v\ndeploy log:\n%v", err, log)
 		return nil
