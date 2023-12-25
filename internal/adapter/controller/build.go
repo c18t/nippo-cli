@@ -62,16 +62,25 @@ func (c *buildController) Exec(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+type OpenGraph struct {
+	Url         string
+	Title       string
+	Description string
+	ImageUrl    string
+}
+
 // page content
 type Content struct {
 	PageTitle string
 	Date      string
+	Og        OpenGraph
 	Content   template.HTML
 }
 
 type Archive struct {
 	PageTitle string
 	Date      string
+	Og        OpenGraph
 	Calender  *model.Calender
 }
 
@@ -139,7 +148,13 @@ func buildIndexPage() error {
 	defer f.Close()
 
 	err = ts.SaveTo(f, "index", Content{
-		Date:    nippo.Date.TitleString(),
+		Date: nippo.Date.TitleString(),
+		Og: OpenGraph{
+			Url:         "https://nippo.c18t.net/",
+			Title:       "日報 - nippo.c18t.net",
+			Description: "ɯ̹t͡ɕʲi's daily reports.",
+			ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
+		},
 		Content: template.HTML(nippoHtml),
 	})
 	return err
@@ -185,7 +200,13 @@ func buildNippoPage() error {
 		err = ts.SaveTo(f, "nippo", Content{
 			PageTitle: nippo.Date.PathString(),
 			Date:      nippo.Date.TitleString(),
-			Content:   template.HTML(nippoHtml),
+			Og: OpenGraph{
+				Url:         "https://nippo.c18t.net/" + nippo.Date.PathString(),
+				Title:       nippo.Date.PathString() + " / 日報 - nippo.c18t.net",
+				Description: "ɯ̹t͡ɕʲi's daily report for " + nippo.Date.PathString() + ".",
+				ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
+			},
+			Content: template.HTML(nippoHtml),
 		})
 		if err != nil {
 			fmt.Println(err)
@@ -247,7 +268,13 @@ func buildArchivePage() error {
 	err = ts.SaveTo(f, "calender", Archive{
 		PageTitle: calender.YearMonth.PathString(),
 		Date:      calender.YearMonth.TitleString(),
-		Calender:  calender,
+		Og: OpenGraph{
+			Url:         "https://nippo.c18t.net/archive/" + calender.YearMonth.PathString(),
+			Title:       calender.YearMonth.PathString() + " / 日報 - nippo.c18t.net",
+			Description: "ɯ̹t͡ɕʲi's daily reports for " + calender.YearMonth.PathString() + ".",
+			ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
+		},
+		Calender: calender,
 	})
 	if err != nil {
 		fmt.Println(err)
