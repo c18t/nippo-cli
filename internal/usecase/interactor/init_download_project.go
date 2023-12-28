@@ -1,44 +1,36 @@
-package controller
+package interactor
 
 import (
 	"archive/zip"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
-	"github.com/spf13/cobra"
+	"github.com/c18t/nippo-cli/internal/usecase/port"
 )
 
-type UpdateController interface {
-	core.Controller
+type initDownloadProjectInteractor struct {
+	presenter presenter.InitDownloadProjectPresenter
 }
 
-type updateController struct {
+func NewInitDownloadProjectInteractor(presenter presenter.InitDownloadProjectPresenter) port.InitDownloadProjectUsecase {
+	return &initDownloadProjectInteractor{presenter}
 }
 
-func NewUpdateController() UpdateController {
-	return &updateController{}
-}
+func (u *initDownloadProjectInteractor) Handle(input *port.InitDownloadProjectUsecaseInputData) {
+	output := &port.InitDownloadProjectUsecaseOutpuData{}
 
-func (c *updateController) Exec(cmd *cobra.Command, args []string) error {
-	fmt.Print("update project files... ")
-	err := downloadProject()
-	cobra.CheckErr(err)
-	fmt.Println("ok.")
-	return nil
-}
-
-func downloadProject() error {
 	// ダウンロードするURL
 	url := "https://codeload.github.com/c18t/nippo/zip/refs/heads/main"
 
 	cacheDir := core.Cfg.GetCacheDir()
 	err := os.MkdirAll(cacheDir, 0755)
 	if err != nil && !os.IsExist(err) {
-		return err
+		u.presenter.Suspend(err)
+		return
 	}
 
 	// ダウンロードしたファイルを格納するファイル名
@@ -47,38 +39,45 @@ func downloadProject() error {
 	// ダウンロード
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		u.presenter.Suspend(err)
+		return
 	}
 	defer resp.Body.Close()
 
 	// XDG_CACHE_HOMEディレクトリにファイルを保存
 	f, err := os.Create(filepath.Join(cacheDir, filename))
 	if err != nil {
-		return err
+		u.presenter.Suspend(err)
+		return
 	}
 	defer f.Close()
 
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
-		return err
+		u.presenter.Suspend(err)
+		return
 	}
 
 	// 展開するディレクトリを取得
 	dataDir := core.Cfg.GetDataDir()
 	err = os.MkdirAll(dataDir, 0755)
 	if err != nil && !os.IsExist(err) {
-		return err
+		u.presenter.Suspend(err)
+		return
 	}
 
 	// ZIPファイルを展開
 	err = unzip(filepath.Join(cacheDir, filename), dataDir)
 	if err != nil {
-		return err
+		u.presenter.Suspend(err)
+		return
 	}
 
-	return nil
+	output.Message = "ダウンロードと展開が完了しました。"
+	u.presenter.Complete(output)
 }
 
+// ZIPファイルを展開する関数
 func unzip(zipFile, destDir string) error {
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {

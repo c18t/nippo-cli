@@ -45,6 +45,6 @@ func (bus *rootUsecaseBus) Handle(input RootUsecaseInputData) {
 	case *RootVersionUsecaseInputData:
 		bus.version.Handle(data)
 	default:
-		panic(fmt.Errorf("%v is not implemented", data))
+		panic(fmt.Errorf("handler for '%T' is not implemented", data))
 	}
 }
