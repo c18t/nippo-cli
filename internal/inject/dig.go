@@ -2,6 +2,7 @@ package inject
 
 import (
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
+	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/domain/service"
 	"github.com/c18t/nippo-cli/internal/usecase/interactor"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
@@ -20,6 +21,9 @@ func NewContainer() *dig.Container {
 	container.Provide(controller.NewInitController)
 	container.Provide(controller.NewRootController)
 	container.Provide(controller.NewUpdateController)
+
+	// adapter/presenter
+	container.Provide(presenter.NewRootVersionPresenter)
 
 	// usecase/port
 	container.Provide(port.NewRootUsecaseBus)

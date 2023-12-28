@@ -49,17 +49,17 @@ func (c *rootController) InitConfig() {
 	core.Cfg.LoadConfig(c.params.ConfigFile)
 }
 
-func (c *rootController) Exec(cmd *cobra.Command, args []string) error {
+func (c *rootController) Exec(cmd *cobra.Command, args []string) (err error) {
 	if c.params.Version {
 		// show nippo-cli version
 		c.bus.Handle(&port.RootVersionUsecaseInputData{Version: c.verison})
 	} else if c.params.LicenseNotice {
 		// show license notice
 		fmt.Println("set --license-notice")
+		err = fmt.Errorf("not implemented")
 	} else {
 		// show help
 		cmd.Help()
 	}
-
-	return nil
+	return
 }

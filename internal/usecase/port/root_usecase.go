@@ -16,6 +16,7 @@ type RootVersionUsecaseInputData struct {
 }
 type RootVersionUsecaseOutpuData struct {
 	RootUsecaseOutputData
+	Message string
 }
 type RootVersionUsecase interface {
 	core.Usecase
@@ -40,14 +41,10 @@ func NewRootUsecaseBus(bus inRootUsecaseBus) RootUsecaseBus {
 }
 
 func (bus *rootUsecaseBus) Handle(input RootUsecaseInputData) {
-	var err error
 	switch data := input.(type) {
 	case *RootVersionUsecaseInputData:
 		bus.version.Handle(data)
 	default:
-		err = fmt.Errorf("not imprement")
-	}
-	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("%v is not implemented", data))
 	}
 }
