@@ -26,15 +26,18 @@ func NewContainer() *dig.Container {
 	container.Provide(presenter.NewRootVersionPresenter)
 	container.Provide(presenter.NewInitDownloadProjectPresenter)
 	container.Provide(presenter.NewInitSaveDriveTokenPresenter)
+	container.Provide(presenter.NewUpdateProjectDataPresenter)
 
 	// usecase/port
 	container.Provide(port.NewRootUsecaseBus)
 	container.Provide(port.NewInitUsecaseBus)
+	container.Provide(port.NewUpdateUsecaseBus)
 
 	// usecase/intractor
 	container.Provide(interactor.NewRootVersionInteractor)
 	container.Provide(interactor.NewInitDownloadProjectInteractor)
 	container.Provide(interactor.NewInitSaveDriveTokenInteractor)
+	container.Provide(interactor.NewUpdateProjectDataInteractor)
 
 	// domain/service
 	container.Provide(service.NewTemplateService)

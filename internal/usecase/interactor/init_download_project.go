@@ -23,14 +23,24 @@ func NewInitDownloadProjectInteractor(presenter presenter.InitDownloadProjectPre
 func (u *initDownloadProjectInteractor) Handle(input *port.InitDownloadProjectUsecaseInputData) {
 	output := &port.InitDownloadProjectUsecaseOutpuData{}
 
+	err := downloadProject()
+	if err != nil {
+		u.presenter.Suspend(err)
+		return
+	}
+
+	output.Message = "ダウンロードと展開が完了しました。"
+	u.presenter.Complete(output)
+}
+
+func downloadProject() error {
 	// ダウンロードするURL
 	url := "https://codeload.github.com/c18t/nippo/zip/refs/heads/main"
 
 	cacheDir := core.Cfg.GetCacheDir()
 	err := os.MkdirAll(cacheDir, 0755)
 	if err != nil && !os.IsExist(err) {
-		u.presenter.Suspend(err)
-		return
+		return err
 	}
 
 	// ダウンロードしたファイルを格納するファイル名
@@ -39,42 +49,36 @@ func (u *initDownloadProjectInteractor) Handle(input *port.InitDownloadProjectUs
 	// ダウンロード
 	resp, err := http.Get(url)
 	if err != nil {
-		u.presenter.Suspend(err)
-		return
+		return err
 	}
 	defer resp.Body.Close()
 
 	// XDG_CACHE_HOMEディレクトリにファイルを保存
 	f, err := os.Create(filepath.Join(cacheDir, filename))
 	if err != nil {
-		u.presenter.Suspend(err)
-		return
+		return err
 	}
 	defer f.Close()
 
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
-		u.presenter.Suspend(err)
-		return
+		return err
 	}
 
 	// 展開するディレクトリを取得
 	dataDir := core.Cfg.GetDataDir()
 	err = os.MkdirAll(dataDir, 0755)
 	if err != nil && !os.IsExist(err) {
-		u.presenter.Suspend(err)
-		return
+		return err
 	}
 
 	// ZIPファイルを展開
 	err = unzip(filepath.Join(cacheDir, filename), dataDir)
 	if err != nil {
-		u.presenter.Suspend(err)
-		return
+		return err
 	}
 
-	output.Message = "ダウンロードと展開が完了しました。"
-	u.presenter.Complete(output)
+	return nil
 }
 
 // ZIPファイルを展開する関数
