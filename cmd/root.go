@@ -35,7 +35,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&root.Params().ConfigFile, "config", "", "config file (default is $XDG_CONFIG_HOME/nippo/.nippo.toml)")
+	rootCmd.PersistentFlags().StringVar(&root.Params().ConfigFile, "config", "", "config file (default is $XDG_CONFIG_HOME/nippo/nippo.toml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
