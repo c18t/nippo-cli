@@ -2,7 +2,7 @@ package core
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -20,12 +20,12 @@ func (c *Config) GetConfigDir() string {
 		return c.configDir
 	}
 
-	defaultConfigDir := path.Join(c.homeDir(), ".config")
+	defaultConfigDir := filepath.Join(c.homeDir(), ".config")
 	configDir := os.Getenv("XDG_CONFIG_HOME")
-	if configDir == "" || !path.IsAbs(configDir) {
+	if configDir == "" || !filepath.IsAbs(configDir) {
 		configDir = defaultConfigDir
 	}
-	c.configDir = path.Join(configDir, "nippo")
+	c.configDir = filepath.Join(configDir, "nippo")
 	return c.configDir
 }
 
@@ -34,12 +34,12 @@ func (c *Config) GetDataDir() string {
 		return c.dataDir
 	}
 
-	defaultDataDir := path.Join(c.homeDir(), ".local", "share")
+	defaultDataDir := filepath.Join(c.homeDir(), ".local", "share")
 	dataDir := os.Getenv("XDG_DATA_HOME")
-	if dataDir == "" || !path.IsAbs(dataDir) {
+	if dataDir == "" || !filepath.IsAbs(dataDir) {
 		dataDir = defaultDataDir
 	}
-	c.dataDir = path.Join(dataDir, "nippo")
+	c.dataDir = filepath.Join(dataDir, "nippo")
 	return c.dataDir
 }
 
@@ -48,12 +48,12 @@ func (c *Config) GetCacheDir() string {
 		return c.cacheDir
 	}
 
-	defaultCacheDir := path.Join(c.homeDir(), ".cache")
+	defaultCacheDir := filepath.Join(c.homeDir(), ".cache")
 	cacheDir := os.Getenv("XDG_CACHE_HOME")
-	if cacheDir == "" || !path.IsAbs(cacheDir) {
+	if cacheDir == "" || !filepath.IsAbs(cacheDir) {
 		cacheDir = defaultCacheDir
 	}
-	c.cacheDir = path.Join(cacheDir, "nippo")
+	c.cacheDir = filepath.Join(cacheDir, "nippo")
 	return c.cacheDir
 }
 

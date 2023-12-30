@@ -2,22 +2,33 @@ package interactor
 
 import (
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 
+	"github.com/c18t/nippo-cli/internal/adapter/gateway"
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
+	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"go.uber.org/dig"
 )
 
 type deploySiteInteractor struct {
+	provider  gateway.LocalFileProvider
 	presenter presenter.DeploySitePresenter
 }
 
-func NewDeploySiteInteractor(presenter presenter.DeploySitePresenter) port.DeploySiteUsecase {
-	return &deploySiteInteractor{presenter}
+type inDeploySiteInteractor struct {
+	dig.In
+	Provider  gateway.LocalFileProvider
+	Presenter presenter.DeploySitePresenter
+}
+
+func NewDeploySiteInteractor(deployDeps inDeploySiteInteractor) port.DeploySiteUsecase {
+	return &deploySiteInteractor{
+		provider:  deployDeps.Provider,
+		presenter: deployDeps.Presenter,
+	}
 }
 
 func (u *deploySiteInteractor) Handle(input *port.DeploySiteUsecaseInputData) {
@@ -26,31 +37,18 @@ func (u *deploySiteInteractor) Handle(input *port.DeploySiteUsecaseInputData) {
 	output.Message = "deploy to vercel... "
 	u.presenter.Progress(output)
 
-	dataDir := path.Join(core.Cfg.GetDataDir(), "output")
-	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
+	dataDir := filepath.Join(core.Cfg.GetDataDir(), "output")
+	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
-	files, err := os.ReadDir(dataDir)
+	files, err := u.provider.List(&repository.QueryListParam{
+		Folder: dataDir,
+	})
 	if err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		src, err := os.Open(path.Join(dataDir, file.Name()))
-		if err != nil {
-			u.presenter.Suspend(err)
-			return
-		}
-		defer src.Close()
-		dest, err := os.Create(path.Join(outputDir, file.Name()))
-		if err != nil {
-			u.presenter.Suspend(err)
-			return
-		}
-		defer dest.Close()
-		_, err = io.Copy(dest, src)
+		err = u.provider.Copy(filepath.Join(outputDir, file.Name()), filepath.Join(dataDir, file.Name()))
 		if err != nil {
 			u.presenter.Suspend(err)
 			return

@@ -1,22 +1,27 @@
 package interactor
 
 import (
-	"fmt"
-	"os"
-	"path"
-	"strings"
-
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
-	"github.com/c18t/nippo-cli/internal/core"
+	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"go.uber.org/dig"
 )
 
 type cleanBuildCacheInteractor struct {
-	presenter presenter.CleanBuildCachePresenter
+	repository repository.AssetRepository
+	presenter  presenter.CleanBuildCachePresenter
+}
+type inCleanBuildCacheInteractor struct {
+	dig.In
+	Repository repository.AssetRepository
+	Presenter  presenter.CleanBuildCachePresenter
 }
 
-func NewCleanBuildCacheInteractor(presenter presenter.CleanBuildCachePresenter) port.CleanBuildCacheUsecase {
-	return &cleanBuildCacheInteractor{presenter}
+func NewCleanBuildCacheInteractor(cleanDeps inCleanBuildCacheInteractor) port.CleanBuildCacheUsecase {
+	return &cleanBuildCacheInteractor{
+		repository: cleanDeps.Repository,
+		presenter:  cleanDeps.Presenter,
+	}
 }
 
 func (u *cleanBuildCacheInteractor) Handle(input *port.CleanBuildCacheUsecaseInputData) {
@@ -25,51 +30,9 @@ func (u *cleanBuildCacheInteractor) Handle(input *port.CleanBuildCacheUsecaseInp
 	output.Message = "clean cache files... "
 	u.presenter.Progress(output)
 
-	clearNippoCache()
-	clearBuildCache()
+	u.repository.CleanNippoCache()
+	u.repository.CleanBuildCache()
 
 	output.Message = "ok. "
 	u.presenter.Complete(output)
-}
-
-func clearNippoCache() error {
-	outputDir := path.Join(core.Cfg.GetCacheDir(), "md")
-	files, err := os.ReadDir(outputDir)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		fileName := file.Name()
-		err = os.Remove(path.Join(outputDir, fileName))
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	return nil
-}
-
-func clearBuildCache() error {
-	outputDir := path.Join(core.Cfg.GetCacheDir(), "output")
-	files, err := os.ReadDir(outputDir)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		fileName := file.Name()
-		if strings.HasSuffix(fileName, ".html") {
-			err = os.Remove(path.Join(outputDir, fileName))
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-	}
-	return nil
 }

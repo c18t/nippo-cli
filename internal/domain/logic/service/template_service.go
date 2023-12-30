@@ -1,9 +1,10 @@
 package service
 
 import (
+	"fmt"
 	"html/template"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/c18t/nippo-cli/internal/core"
 	i "github.com/c18t/nippo-cli/internal/domain/service"
@@ -17,7 +18,21 @@ func NewTemplateService() i.TemplateService {
 	return &templateService{}
 }
 
-func (s *templateService) SaveTo(f *os.File, templateName string, data any) error {
+func (s *templateService) SaveTo(filePath string, templateName string, data any) error {
+	outputDir := filepath.Dir(filePath)
+	err := os.MkdirAll(outputDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		fmt.Println(err)
+		return nil
+	}
+
+	f, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer f.Close()
+
 	tmpl, err := s.template().Lookup("layout").Clone()
 	if err != nil {
 		return err
@@ -37,7 +52,7 @@ func (s *templateService) template() *template.Template {
 }
 
 func (s *templateService) lazyLoadTemplate() error {
-	t, err := template.ParseGlob(path.Join(core.Cfg.GetDataDir(), "templates", "*.html"))
+	t, err := template.ParseGlob(filepath.Join(core.Cfg.GetDataDir(), "templates", "*.html"))
 	if err != nil {
 		return err
 	}

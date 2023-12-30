@@ -4,18 +4,21 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
+	"google.golang.org/api/drive/v3"
 )
 
 type Nippo struct {
-	Date     NippoDate
-	FilePath string
+	Date       NippoDate
+	FilePath   string
+	Content    []byte
+	RemoteFile *drive.File
 }
 
 type NippoDate interface {
@@ -31,8 +34,8 @@ type nippoDate struct {
 	time time.Time
 }
 
-func NewNippo(filePath string) (Nippo, error) {
-	nippo := Nippo{}
+func NewNippo(filePath string) (*Nippo, error) {
+	nippo := &Nippo{}
 
 	if err := checkNippoIsExist(filePath); err != nil {
 		return nippo, err
@@ -44,7 +47,7 @@ func NewNippo(filePath string) (Nippo, error) {
 }
 
 func NewNippoDate(filePath string) NippoDate {
-	date, err := time.Parse("20060102", strings.TrimSuffix(path.Base(filePath), ".md"))
+	date, err := time.Parse("20060102", strings.TrimSuffix(filepath.Base(filePath), ".md"))
 	if err != nil {
 		panic(err)
 	}

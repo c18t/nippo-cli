@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
@@ -27,7 +27,7 @@ func (u *initSaveDriveTokenInteractor) Handle(input *port.InitSaveDriveTokenUsec
 	output := &port.InitSaveDriveTokenUsecaseOutputData{}
 
 	dataDir := core.Cfg.GetDataDir()
-	b, err := os.ReadFile(path.Join(dataDir, "credentials.json"))
+	b, err := os.ReadFile(filepath.Join(dataDir, "credentials.json"))
 	if err != nil {
 		u.presenter.Suspend(fmt.Errorf("unable to read client secret file: %v", err))
 		return
@@ -40,7 +40,7 @@ func (u *initSaveDriveTokenInteractor) Handle(input *port.InitSaveDriveTokenUsec
 	}
 
 	tok := getTokenFromWeb(config)
-	saveToken(path.Join(dataDir, "token.json"), tok)
+	saveToken(filepath.Join(dataDir, "token.json"), tok)
 
 	u.presenter.Complete(output)
 }

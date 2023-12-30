@@ -1,9 +1,5 @@
 package service
 
-import (
-	"os"
-)
-
 type TemplateService interface {
-	SaveTo(f *os.File, templateName string, data any) error
+	SaveTo(filePath string, templateName string, data any) error
 }
