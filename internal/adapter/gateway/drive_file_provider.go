@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
@@ -15,6 +16,18 @@ import (
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
+
+type DriveFileTimestamp struct {
+	t time.Time
+}
+
+func NewDriveFileTimestamp(t time.Time) DriveFileTimestamp {
+	return DriveFileTimestamp{t}
+}
+
+func (t DriveFileTimestamp) String() string {
+	return t.t.Format(time.RFC3339)
+}
 
 type DriveFileProvider interface {
 	List(param *repository.QueryListParam) (*drive.FileList, error)
@@ -34,9 +47,11 @@ func (g *driveFileProvider) List(param *repository.QueryListParam) (*drive.FileL
 	if err != nil {
 		return nil, err
 	}
-
+	query := fmt.Sprintf(
+		"parents in '%v' and fileExtension = '%v' and modifiedTime >= '%v'",
+		param.Folder, param.FileExtension, NewDriveFileTimestamp(param.UpdatedAt))
 	r, err := fileService.List().
-		Q("parents in '" + param.Folder + "' and fileExtension = '" + param.FileExtension + "'").
+		Q(query).
 		OrderBy(param.OrderBy).
 		Fields("nextPageToken, files(id, name, fileExtension)").
 		PageSize(50).Do()

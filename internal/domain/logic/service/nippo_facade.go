@@ -31,11 +31,7 @@ func NewNippoFacade(serviceDeps inNippoFacade) i.NippoFacade {
 }
 
 func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeOption) (*i.NippoFacadeReponse, error) {
-	remoteFiles, err := s.remoteQuery.List(&repository.QueryListParam{
-		Folder:        "1FZEaqRa8NmuRheHjTiW-_gUP3E5Ddw2T",
-		FileExtension: "md",
-		OrderBy:       "name desc",
-	}, &repository.QueryListOption{})
+	remoteFiles, err := s.remoteQuery.List(request.Query, &repository.QueryListOption{})
 	if err != nil {
 		return nil, err
 	}

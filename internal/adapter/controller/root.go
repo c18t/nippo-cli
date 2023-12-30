@@ -46,7 +46,8 @@ func (c *rootController) Params() *RootParams {
 // initConfig reads in config file and ENV variables if set.
 func (c *rootController) InitConfig() {
 	core.Cfg = &core.Config{}
-	core.Cfg.LoadConfig(c.params.ConfigFile)
+	err := core.Cfg.LoadConfig(c.params.ConfigFile)
+	cobra.CheckErr(err)
 }
 
 func (c *rootController) Exec(cmd *cobra.Command, args []string) (err error) {

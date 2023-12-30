@@ -3,6 +3,8 @@ package core
 import (
 	"os"
 	"path/filepath"
+	"reflect"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -11,6 +13,8 @@ type Config struct {
 	configDir string
 	dataDir   string
 	cacheDir  string
+
+	LastUpdateCheckTimestamp time.Time `mapstructure:"last_update_check_timestamp"`
 }
 
 var Cfg *Config
@@ -66,11 +70,34 @@ func (c *Config) LoadConfig(filePath string) error {
 		viper.SetConfigName("nippo")
 	}
 
+	// set default value
+	time, _ := time.Parse(time.RFC3339, "2001-01-01T00:00:00Z")
+	viper.SetDefault("last_update_check_timestamp", time)
+
 	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err != nil {
+	err := viper.ReadInConfig()
+	if err != nil {
+		switch err.(type) {
+		case viper.ConfigFileNotFoundError:
+			viper.SafeWriteConfig()
+		default:
+			return err
+		}
+	}
+	return viper.Unmarshal(c)
+}
+
+func (c *Config) SaveConfig() error {
+	cMaps := c.configFieldMap()
+	vMaps := viper.AllSettings()
+	for key := range vMaps {
+		viper.Set(key, cMaps[key])
+	}
+	err := viper.WriteConfig()
+	if err != nil {
 		return err
 	}
-	return viper.Unmarshal(&c)
+	return nil
 }
 
 func (c *Config) homeDir() string {
@@ -79,4 +106,18 @@ func (c *Config) homeDir() string {
 		home = ""
 	}
 	return home
+}
+
+func (c *Config) configFieldMap() map[string]any {
+	var cMap = map[string]any{}
+	t := reflect.TypeOf(*c)
+	v := reflect.ValueOf(*c)
+	for i := 0; i < t.NumField(); i++ {
+		tag := t.Field(i).Tag.Get("mapstructure")
+		if tag == "" {
+			continue
+		}
+		cMap[tag] = v.Field(i).Interface()
+	}
+	return cMap
 }

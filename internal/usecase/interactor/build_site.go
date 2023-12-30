@@ -45,9 +45,7 @@ func NewBuildSiteInteractor(buildDeps inBuildSiteInteractor) port.BuildSiteUseca
 func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
 	output := &port.BuildSiteUsecaseOutputData{}
 
-	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
-		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
-	}, &service.NippoFacadeOption{})
+	err := u.downloadNippo()
 	if err != nil {
 		u.presenter.Suspend(err)
 		return
@@ -79,6 +77,23 @@ func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
 
 	output.Message = "ok. "
 	u.presenter.Complete(output)
+}
+
+func (u *buildSiteInteractor) downloadNippo() error {
+	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
+		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
+		Query: &repository.QueryListParam{
+			Folder:        "1FZEaqRa8NmuRheHjTiW-_gUP3E5Ddw2T",
+			FileExtension: "md",
+			UpdatedAt:     core.Cfg.LastUpdateCheckTimestamp,
+			OrderBy:       "name desc",
+		},
+	}, &service.NippoFacadeOption{})
+	if err != nil {
+		return err
+	}
+	core.Cfg.LastUpdateCheckTimestamp = time.Now()
+	return core.Cfg.SaveConfig()
 }
 
 type OpenGraph struct {
