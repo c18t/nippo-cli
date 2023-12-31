@@ -55,7 +55,7 @@ func (u *deploySiteInteractor) Handle(input *port.DeploySiteUsecaseInputData) {
 		}
 	}
 
-	log, err := exec.Command("vercel", "--cwd", outputDir, "--prod").Output()
+	log, err := exec.Command("vercel", "--cwd", outputDir, "--archive=tgz", "--prod").Output()
 	if err != nil {
 		u.presenter.Suspend(fmt.Errorf("err: %v\ndeploy log:\n%v", err, log))
 		return
