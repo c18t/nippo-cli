@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/c18t/nippo-cli/internal/adapter/gateway"
@@ -13,6 +14,7 @@ import (
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/domain/service"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/carlosstrand/go-sitemap"
 	"github.com/gorilla/feeds"
 	"go.uber.org/dig"
 )
@@ -81,6 +83,12 @@ func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
 	}
 
 	err = u.buildFeed()
+	if err != nil {
+		u.presenter.Suspend(err)
+		return
+	}
+
+	err = u.buildSiteMap()
 	if err != nil {
 		u.presenter.Suspend(err)
 		return
@@ -299,5 +307,63 @@ func (u *buildSiteInteractor) buildFeed() error {
 		return err
 	}
 	u.fileProvider.Write(filepath.Join(outputDir, "feed.xml"), []byte(rss))
+	return nil
+}
+
+func (u *buildSiteInteractor) buildSiteMap() error {
+	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
+
+	files, err := u.fileProvider.List(&repository.QueryListParam{
+		Folders:        []string{outputDir},
+		FileExtensions: []string{"html"},
+	})
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	sitemaps := []sitemap.Sitemap{}
+
+	count := 0
+	data := sitemap.NewSitemap([]*sitemap.SitemapItem{}, nil)
+	for _, file := range files {
+		count++
+		if count >= 10000 {
+			sitemaps = append(sitemaps, *data)
+			data = sitemap.NewSitemap([]*sitemap.SitemapItem{}, nil)
+			count = 0
+		}
+
+		fileName := strings.TrimSuffix(file.Name(), ".html")
+		if fileName == "index" {
+			data.AddItem("https://nippo.c18t.net/", now, "daily", 0.5)
+		} else {
+			data.AddItem("https://nippo.c18t.net/"+fileName, now, "monthly", 0.5)
+		}
+	}
+	if count > 0 {
+		sitemaps = append(sitemaps, *data)
+	}
+
+	sitemapIndex := sitemap.NewSitemapIndex([]*sitemap.SitemapIndexItem{}, nil)
+	for i, sitemap := range sitemaps {
+		xmlString, err := sitemap.ToXMLString()
+		if err != nil {
+			return nil
+		}
+		sitemapFileName := fmt.Sprintf("sitemap_%d.xml", i+1)
+		err = u.fileProvider.Write(filepath.Join(outputDir, sitemapFileName), []byte(xmlString))
+		if err != nil {
+			return nil
+		}
+
+		sitemapIndex.AddItem("https://nippo.c18t.net/"+sitemapFileName, now)
+	}
+
+	xmlString, err := sitemapIndex.ToXMLString()
+	if err != nil {
+		return nil
+	}
+	u.fileProvider.Write(filepath.Join(outputDir, "sitemap_index.xml"), []byte(xmlString))
 	return nil
 }
