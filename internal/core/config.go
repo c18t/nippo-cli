@@ -61,6 +61,10 @@ func (c *Config) GetCacheDir() string {
 	return c.cacheDir
 }
 
+func (c *Config) ResetLastUpdateCheckTimestamp() {
+	c.LastUpdateCheckTimestamp = c.getDefaultLastUpdateCheckTimestamp()
+}
+
 func (c *Config) LoadConfig(filePath string) error {
 	if filePath != "" {
 		viper.SetConfigFile(filePath)
@@ -71,8 +75,7 @@ func (c *Config) LoadConfig(filePath string) error {
 	}
 
 	// set default value
-	time, _ := time.Parse(time.RFC3339, "2001-01-01T00:00:00Z")
-	viper.SetDefault("last_update_check_timestamp", time)
+	viper.SetDefault("last_update_check_timestamp", c.getDefaultLastUpdateCheckTimestamp())
 
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
@@ -120,4 +123,9 @@ func (c *Config) configFieldMap() map[string]any {
 		cMap[tag] = v.Field(i).Interface()
 	}
 	return cMap
+}
+
+func (c *Config) getDefaultLastUpdateCheckTimestamp() time.Time {
+	time, _ := time.Parse(time.RFC3339, "2001-01-01T00:00:00Z")
+	return time
 }

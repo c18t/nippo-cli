@@ -41,7 +41,7 @@ func (u *deploySiteInteractor) Handle(input *port.DeploySiteUsecaseInputData) {
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
 	files, err := u.provider.List(&repository.QueryListParam{
-		Folder: dataDir,
+		Folders: []string{dataDir},
 	})
 	if err != nil {
 		u.presenter.Suspend(err)

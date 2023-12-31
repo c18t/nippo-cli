@@ -24,15 +24,28 @@ func NewLocalFileProvider() LocalFileProvider {
 }
 
 func (g *localFileProvider) List(param *repository.QueryListParam) ([]os.DirEntry, error) {
-	files, err := os.ReadDir(param.Folder)
+	if len(param.Folders) > 1 {
+		panic("param.Folders > 1")
+	}
+
+	files, err := os.ReadDir(param.Folders[0])
 	if err != nil {
 		return nil, err
 	}
 
 	var fileList []os.DirEntry
-	suffix := "." + param.FileExtension
 	for _, file := range files {
-		if file.IsDir() || param.FileExtension != "" && !strings.HasSuffix(file.Name(), suffix) {
+		if file.IsDir() {
+			continue
+		}
+		hasSuffix := len(param.FileExtensions) == 0
+		for _, ext := range param.FileExtensions {
+			if strings.HasSuffix(file.Name(), "."+ext) {
+				hasSuffix = true
+				continue
+			}
+		}
+		if !hasSuffix {
 			continue
 		}
 		fileList = append(fileList, file)

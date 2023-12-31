@@ -2,6 +2,7 @@ package interactor
 
 import (
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
+	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"go.uber.org/dig"
@@ -31,6 +32,9 @@ func (u *cleanBuildCacheInteractor) Handle(input *port.CleanBuildCacheUsecaseInp
 	u.presenter.Progress(output)
 
 	u.repository.CleanNippoCache()
+	core.Cfg.ResetLastUpdateCheckTimestamp()
+	core.Cfg.SaveConfig()
+
 	u.repository.CleanBuildCache()
 
 	output.Message = "ok. "

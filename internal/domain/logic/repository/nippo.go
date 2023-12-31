@@ -9,6 +9,7 @@ import (
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/model"
 	i "github.com/c18t/nippo-cli/internal/domain/repository"
+	"google.golang.org/api/drive/v3"
 )
 
 type remoteNippoQuery struct {
@@ -24,17 +25,60 @@ func NewRemoteNippoQuery(p gateway.DriveFileProvider) i.RemoteNippoQuery {
 }
 
 func (r *remoteNippoQuery) List(param *i.QueryListParam, option *i.QueryListOption) ([]model.Nippo, error) {
-	res, err := r.provider.List(param)
+	tempParam := *param
+	res, nippoList, folderList, err := r.list(&tempParam, option)
 	if err != nil {
 		return nil, err
 	}
+	for res.NextPageToken != "" {
+		tempParam.PageToken = res.NextPageToken
+		var pageNippoList []model.Nippo
+		var pageFolderList []drive.File
+		res, pageNippoList, pageFolderList, err = r.list(&tempParam, option)
+		if err != nil {
+			return nil, err
+		}
+		nippoList = append(nippoList, pageNippoList...)
+		folderList = append(folderList, pageFolderList...)
+	}
 
-	nippoList := make([]model.Nippo, len(res.Files))
-	for i, file := range res.Files {
-		nippoList[i].Date = model.NewNippoDate(file.Name)
-		nippoList[i].RemoteFile = file
+	if option.Recursive && len(folderList) > 0 {
+		folderIds := make([]string, len(folderList))
+		for i, folder := range folderList {
+			folderIds[i] = folder.Id
+		}
+		tempParam.Folders = folderIds
+		childNippoList, err := r.List(&tempParam, option)
+		if err != nil {
+			return nil, err
+		}
+		nippoList = append(nippoList, childNippoList...)
 	}
 	return nippoList, nil
+}
+
+func (r *remoteNippoQuery) list(param *i.QueryListParam, option *i.QueryListOption) (*drive.FileList, []model.Nippo, []drive.File, error) {
+	res, err := r.provider.List(param)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	nippoList := []model.Nippo{}
+	folderList := []drive.File{}
+	for _, file := range res.Files {
+		if file.MimeType == gateway.DriveFolderMimeType {
+			folderList = append(folderList, *file)
+		} else {
+			nippo := &model.Nippo{}
+			nippo.Date = model.NewNippoDate(file.Name)
+			nippo.RemoteFile = file
+			if option.WithContent {
+				r.Download(nippo)
+			}
+			nippoList = append(nippoList, *nippo)
+		}
+	}
+	return res, nippoList, folderList, nil
 }
 
 func (r *remoteNippoQuery) Download(nippo *model.Nippo) (err error) {
@@ -55,21 +99,29 @@ func (r *localNippoQuery) Find(date *model.NippoDate) (*model.Nippo, error) {
 }
 
 func (r *localNippoQuery) List(param *i.QueryListParam, option *i.QueryListOption) ([]model.Nippo, error) {
-	files, err := r.provider.List(param)
-	if err != nil {
-		return nil, err
-	}
-
 	var nippoList []model.Nippo
-	for _, file := range files {
-		nippo, err := model.NewNippo(filepath.Join(param.Folder, file.Name()))
+	for _, folder := range param.Folders {
+		localParam := &i.QueryListParam{
+			Folders:        []string{folder},
+			FileExtensions: param.FileExtensions,
+			UpdatedAt:      param.UpdatedAt,
+			OrderBy:        param.OrderBy,
+		}
+		files, err := r.provider.List(localParam)
 		if err != nil {
 			return nil, err
 		}
-		if option.WithContent {
-			r.Load(nippo)
+
+		for _, file := range files {
+			nippo, err := model.NewNippo(filepath.Join(folder, file.Name()))
+			if err != nil {
+				return nil, err
+			}
+			if option.WithContent {
+				r.Load(nippo)
+			}
+			nippoList = append(nippoList, *nippo)
 		}
-		nippoList = append(nippoList, *nippo)
 	}
 	return nippoList, nil
 }
@@ -93,7 +145,7 @@ func (r *localNippoCommand) Create(nippo *model.Nippo) error {
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
-	filePath := filepath.Join(cacheDir, fmt.Sprintf("%v.md", nippo.Date))
+	filePath := filepath.Join(cacheDir, fmt.Sprintf("%v.md", nippo.Date.FileString()))
 	f, err := os.Create(filePath)
 	if err != nil {
 		return err

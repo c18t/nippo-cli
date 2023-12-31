@@ -83,10 +83,13 @@ func (u *buildSiteInteractor) downloadNippo() error {
 	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
 		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
 		Query: &repository.QueryListParam{
-			Folder:        "1FZEaqRa8NmuRheHjTiW-_gUP3E5Ddw2T",
-			FileExtension: "md",
-			UpdatedAt:     core.Cfg.LastUpdateCheckTimestamp,
-			OrderBy:       "name desc",
+			Folders:        []string{"1FZEaqRa8NmuRheHjTiW-_gUP3E5Ddw2T"},
+			FileExtensions: []string{"md"},
+			UpdatedAt:      core.Cfg.LastUpdateCheckTimestamp,
+			OrderBy:        "name desc",
+		},
+		Option: &repository.QueryListOption{
+			Recursive: true,
 		},
 	}, &service.NippoFacadeOption{})
 	if err != nil {
@@ -187,12 +190,12 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 
 		nippoFile := fmt.Sprintf("%v.html", nippo.Date.PathString())
 		err = u.templateService.SaveTo(filepath.Join(outputDir, nippoFile), "nippo", Content{
-			PageTitle: nippo.Date.PathString(),
+			PageTitle: nippo.Date.FileString(),
 			Date:      nippo.Date.TitleString(),
 			Og: OpenGraph{
 				Url:         "https://nippo.c18t.net/" + nippo.Date.PathString(),
-				Title:       nippo.Date.PathString() + " / 日報 - nippo.c18t.net",
-				Description: "ɯ̹t͡ɕʲi's daily report for " + nippo.Date.PathString() + ".",
+				Title:       nippo.Date.FileString() + " / 日報 - nippo.c18t.net",
+				Description: "ɯ̹t͡ɕʲi's daily report for " + nippo.Date.FileString() + ".",
 				ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
 			},
 			Content: template.HTML(nippoHtml),
@@ -216,7 +219,7 @@ func (u *buildSiteInteractor) buildArchivePage() error {
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
 
-	month, err := time.Parse("20060102.md", files[0].Name())
+	month, err := model.NewCalenderYearMonth(files[0].Name())
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -244,12 +247,12 @@ func (u *buildSiteInteractor) buildArchivePage() error {
 	archiveFile := fmt.Sprintf("%04d%02d.html", calender.YearMonth.Year, calender.YearMonth.Month)
 
 	err = u.templateService.SaveTo(filepath.Join(outputDir, archiveFile), "calender", Archive{
-		PageTitle: calender.YearMonth.PathString(),
+		PageTitle: calender.YearMonth.FileString(),
 		Date:      calender.YearMonth.TitleString(),
 		Og: OpenGraph{
 			Url:         "https://nippo.c18t.net/archive/" + calender.YearMonth.PathString(),
-			Title:       calender.YearMonth.PathString() + " / 日報 - nippo.c18t.net",
-			Description: "ɯ̹t͡ɕʲi's daily reports for " + calender.YearMonth.PathString() + ".",
+			Title:       calender.YearMonth.FileString() + " / 日報 - nippo.c18t.net",
+			Description: "ɯ̹t͡ɕʲi's daily reports for " + calender.YearMonth.FileString() + ".",
 			ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
 		},
 		Calender: calender,

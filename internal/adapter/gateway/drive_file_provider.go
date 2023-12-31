@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/c18t/nippo-cli/internal/core"
@@ -16,6 +17,8 @@ import (
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
+
+const DriveFolderMimeType = "application/vnd.google-apps.folder"
 
 type DriveFileTimestamp struct {
 	t time.Time
@@ -47,14 +50,12 @@ func (g *driveFileProvider) List(param *repository.QueryListParam) (*drive.FileL
 	if err != nil {
 		return nil, err
 	}
-	query := fmt.Sprintf(
-		"parents in '%v' and fileExtension = '%v' and modifiedTime >= '%v'",
-		param.Folder, param.FileExtension, NewDriveFileTimestamp(param.UpdatedAt))
+	query := g.queryBuilder(param)
 	r, err := fileService.List().
 		Q(query).
 		OrderBy(param.OrderBy).
-		Fields("nextPageToken, files(id, name, fileExtension)").
-		PageSize(50).Do()
+		Fields("nextPageToken, files(id, name, fileExtension, mimeType)").
+		PageSize(100).Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve files: %v", err)
 	}
@@ -119,4 +120,57 @@ func (g *driveFileProvider) tokenFromFile(file string) (*oauth2.Token, error) {
 	tok := &oauth2.Token{}
 	err = json.NewDecoder(f).Decode(tok)
 	return tok, err
+}
+
+func (g *driveFileProvider) queryBuilder(param *repository.QueryListParam) string {
+	var sb strings.Builder
+	folderQuery := fmt.Sprintf("mimeType = '%s'", DriveFolderMimeType)
+	sb.WriteString(folderQuery)
+
+	var parentValue string
+	if len(param.Folders) > 0 {
+		var parents = make([]string, len(param.Folders))
+		for i, v := range param.Folders {
+			parents[i] = fmt.Sprintf("'%s'", v)
+		}
+		parentValue = strings.Join(parents, ", ")
+		if sb.Len() > 0 {
+			sb.WriteString(" and ")
+		}
+		sb.WriteString(fmt.Sprintf("parents in %s", parentValue))
+	}
+	folderQuery = sb.String()
+
+	sb.Reset()
+	if parentValue != "" {
+		if sb.Len() > 0 {
+			sb.WriteString(" and ")
+		}
+		sb.WriteString(fmt.Sprintf("parents in %s", parentValue))
+	}
+	if len(param.FileExtensions) != 0 {
+		var exts = make([]string, len(param.FileExtensions))
+		for i, v := range param.FileExtensions {
+			exts[i] = fmt.Sprintf("'%s'", v)
+		}
+		extValue := strings.Join(exts, ", ")
+		if sb.Len() > 0 {
+			sb.WriteString(" and ")
+		}
+		sb.WriteString(fmt.Sprintf("fileExtension in %s", extValue))
+	}
+	if !param.UpdatedAt.IsZero() {
+		modifiedTimeQuery := fmt.Sprintf("modifiedTime >= '%v'", NewDriveFileTimestamp(param.UpdatedAt))
+		if sb.Len() > 0 {
+			sb.WriteString(" and ")
+		}
+		sb.WriteString(modifiedTimeQuery)
+	}
+	fileQuery := sb.String()
+
+	if fileQuery == "" {
+		return fmt.Sprintf("%s and trashed != true", fileQuery)
+	} else {
+		return fmt.Sprintf("((%s) or (%s)) and trashed != true", folderQuery, fileQuery)
+	}
 }

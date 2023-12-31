@@ -7,14 +7,16 @@ import (
 )
 
 type QueryListParam struct {
-	Folder        string
-	UpdatedAt     time.Time
-	FileExtension string
-	OrderBy       string
+	Folders        []string
+	UpdatedAt      time.Time
+	FileExtensions []string
+	OrderBy        string
+	PageToken      string
 }
 
 type QueryListOption struct {
 	WithContent bool
+	Recursive   bool
 }
 
 type RemoteNippoQuery interface {

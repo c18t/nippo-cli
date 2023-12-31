@@ -21,6 +21,7 @@ const (
 type NippoFacadeRequest struct {
 	Action  NippoFacadeAction
 	Query   *repository.QueryListParam
+	Option  *repository.QueryListOption
 	Content []model.Nippo
 }
 type NippoFacadeOption struct {

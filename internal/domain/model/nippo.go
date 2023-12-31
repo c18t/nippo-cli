@@ -23,6 +23,7 @@ type Nippo struct {
 
 type NippoDate interface {
 	PathString() string
+	FileString() string
 	TitleString() string
 
 	Year() int
@@ -47,7 +48,7 @@ func NewNippo(filePath string) (*Nippo, error) {
 }
 
 func NewNippoDate(filePath string) NippoDate {
-	date, err := time.Parse("20060102", strings.TrimSuffix(filepath.Base(filePath), ".md"))
+	date, err := time.Parse("2006-01-02", filepath.Base(filePath)[:10])
 	if err != nil {
 		panic(err)
 	}
@@ -90,6 +91,10 @@ func checkNippoIsExist(filePath string) error {
 
 func (date *nippoDate) String() string {
 	return date.PathString()
+}
+
+func (date *nippoDate) FileString() string {
+	return fmt.Sprintf("%04d-%02d-%02d", date.time.Year(), date.time.Month(), date.time.Day())
 }
 
 func (date *nippoDate) PathString() string {

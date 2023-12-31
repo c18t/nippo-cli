@@ -31,7 +31,7 @@ func NewNippoFacade(serviceDeps inNippoFacade) i.NippoFacade {
 }
 
 func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeOption) (*i.NippoFacadeReponse, error) {
-	remoteFiles, err := s.remoteQuery.List(request.Query, &repository.QueryListOption{})
+	remoteFiles, err := s.remoteQuery.List(request.Query, request.Option)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +61,7 @@ func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeO
 			nippoList[i] = nippo
 		}
 	} else {
-		for i, nippo := range request.Content {
-			nippoList[i] = nippo
-		}
+		nippoList = request.Content
 	}
 
 	count := len(nippoList)
