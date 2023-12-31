@@ -281,7 +281,7 @@ func (u *buildSiteInteractor) buildFeed() error {
 		return err
 	}
 
-	for _, nippo := range nippoList[len(nippoList)-10:] {
+	for _, nippo := range nippoList[len(nippoList)-20:] {
 		nippoHtml, err := nippo.GetHtml()
 		if err != nil {
 			return err
