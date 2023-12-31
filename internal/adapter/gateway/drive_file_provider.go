@@ -50,16 +50,24 @@ func (g *driveFileProvider) List(param *repository.QueryListParam) (*drive.FileL
 	if err != nil {
 		return nil, err
 	}
+
 	query := g.queryBuilder(param)
-	r, err := fileService.List().
-		Q(query).
-		OrderBy(param.OrderBy).
+	listCall := fileService.List().
 		Fields("nextPageToken, files(id, name, fileExtension, mimeType)").
-		PageSize(100).Do()
+		PageSize(100).
+		Q(query)
+	if param.OrderBy != "" {
+		listCall = listCall.OrderBy(param.OrderBy)
+	}
+	if param.PageToken != "" {
+		listCall = listCall.PageToken(param.PageToken)
+	}
+
+	res, err := listCall.Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve files: %v", err)
 	}
-	return r, nil
+	return res, nil
 }
 
 func (g *driveFileProvider) Download(id string) ([]byte, error) {

@@ -56,13 +56,17 @@ func NewNippoDate(filePath string) NippoDate {
 }
 
 func (n *Nippo) GetMarkdown() ([]byte, error) {
+	if len(n.Content) > 0 {
+		return n.Content, nil
+	}
 	f, err := os.Open(n.FilePath)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	return io.ReadAll(f)
+	n.Content, err = io.ReadAll(f)
+	return n.Content, err
 }
 
 func (n *Nippo) GetHtml() ([]byte, error) {

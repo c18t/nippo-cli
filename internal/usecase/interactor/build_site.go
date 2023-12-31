@@ -3,10 +3,7 @@ package interactor
 import (
 	"fmt"
 	"html/template"
-	"os"
-	"path"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
@@ -20,6 +17,7 @@ import (
 
 type buildSiteInteractor struct {
 	assetRepository repository.AssetRepository
+	localNippoQuery repository.LocalNippoQuery
 	nippoService    service.NippoFacade
 	templateService service.TemplateService
 	presenter       presenter.BuildSitePresenter
@@ -28,6 +26,7 @@ type buildSiteInteractor struct {
 type inBuildSiteInteractor struct {
 	dig.In
 	AssetRepository repository.AssetRepository
+	LocalNippoQuery repository.LocalNippoQuery
 	NippoService    service.NippoFacade
 	TemplateService service.TemplateService
 	Presenter       presenter.BuildSitePresenter
@@ -36,6 +35,7 @@ type inBuildSiteInteractor struct {
 func NewBuildSiteInteractor(buildDeps inBuildSiteInteractor) port.BuildSiteUsecase {
 	return &buildSiteInteractor{
 		assetRepository: buildDeps.AssetRepository,
+		localNippoQuery: buildDeps.LocalNippoQuery,
 		nippoService:    buildDeps.NippoService,
 		templateService: buildDeps.TemplateService,
 		presenter:       buildDeps.Presenter,
@@ -83,10 +83,10 @@ func (u *buildSiteInteractor) downloadNippo() error {
 	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
 		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
 		Query: &repository.QueryListParam{
-			Folders:        []string{"1FZEaqRa8NmuRheHjTiW-_gUP3E5Ddw2T"},
+			Folders:        []string{"1HNSRS2tJI2t7DKP_8XQJ2NTleSH-rs4y"},
 			FileExtensions: []string{"md"},
 			UpdatedAt:      core.Cfg.LastUpdateCheckTimestamp,
-			OrderBy:        "name desc",
+			OrderBy:        "name",
 		},
 		Option: &repository.QueryListOption{
 			Recursive: true,
@@ -125,29 +125,16 @@ func (u *buildSiteInteractor) buildIndexPage() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
-	files, err := os.ReadDir(cacheDir)
+	nippoList, err := u.localNippoQuery.List(&repository.QueryListParam{
+		Folders: []string{cacheDir},
+	}, &repository.QueryListOption{})
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return err
 	}
-	sort.Slice(files, func(i, j int) bool { return files[i].Name() > files[j].Name() })
-	var fileName string
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		fileName = file.Name()
-		break
-	}
-	nippo, err := model.NewNippo(path.Join(cacheDir, fileName))
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
+	nippo := nippoList[len(nippoList)-1]
 	nippoHtml, err := nippo.GetHtml()
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return err
 	}
 
 	err = u.templateService.SaveTo(filepath.Join(outputDir, "index.html"), "index", Content{
@@ -167,25 +154,18 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
-	files, err := os.ReadDir(cacheDir)
+	nippoList, err := u.localNippoQuery.List(&repository.QueryListParam{
+		Folders: []string{cacheDir},
+	}, &repository.QueryListOption{
+		WithContent: true,
+	})
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return err
 	}
-	sort.Slice(files, func(i, j int) bool { return files[i].Name() > files[j].Name() })
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		nippo, err := model.NewNippo(filepath.Join(cacheDir, file.Name()))
-		if err != nil {
-			fmt.Println(err)
-			return nil
-		}
+	for _, nippo := range nippoList {
 		nippoHtml, err := nippo.GetHtml()
 		if err != nil {
-			fmt.Println(err)
-			return nil
+			return err
 		}
 
 		nippoFile := fmt.Sprintf("%v.html", nippo.Date.PathString())
@@ -201,8 +181,7 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 			Content: template.HTML(nippoHtml),
 		})
 		if err != nil {
-			fmt.Println(err)
-			return nil
+			return err
 		}
 	}
 	return nil
@@ -210,56 +189,49 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 
 func (u *buildSiteInteractor) buildArchivePage() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
-	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output", "archive")
+	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
-	files, err := os.ReadDir(cacheDir)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
-
-	month, err := model.NewCalenderYearMonth(files[0].Name())
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	nippoList := []model.Nippo{}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		nippo, err := model.NewNippo(filepath.Join(cacheDir, file.Name()))
-		if err != nil {
-			fmt.Println(err)
-			return nil
-		}
-		nippoList = append(nippoList, *nippo)
-	}
-
-	calender, err := model.NewCalender(month, nippoList)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	archiveFile := fmt.Sprintf("%04d%02d.html", calender.YearMonth.Year, calender.YearMonth.Month)
-
-	err = u.templateService.SaveTo(filepath.Join(outputDir, archiveFile), "calender", Archive{
-		PageTitle: calender.YearMonth.FileString(),
-		Date:      calender.YearMonth.TitleString(),
-		Og: OpenGraph{
-			Url:         "https://nippo.c18t.net/archive/" + calender.YearMonth.PathString(),
-			Title:       calender.YearMonth.FileString() + " / 日報 - nippo.c18t.net",
-			Description: "ɯ̹t͡ɕʲi's daily reports for " + calender.YearMonth.FileString() + ".",
-			ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
-		},
-		Calender: calender,
+	nippoList, err := u.localNippoQuery.List(&repository.QueryListParam{
+		Folders: []string{cacheDir},
+	}, &repository.QueryListOption{
+		WithContent: true,
 	})
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		return err
+	}
+	var monthMap = map[string]bool{}
+	for _, nippo := range nippoList {
+		month := nippo.Date.FileString()[:7]
+		monthMap[month] = true
+	}
+
+	for key := range monthMap {
+		month, err := model.NewCalenderYearMonth(key)
+		if err != nil {
+			return err
+		}
+
+		calender, err := model.NewCalender(month, nippoList)
+		if err != nil {
+			return err
+		}
+
+		archiveFile := fmt.Sprintf("%04d%02d.html", calender.YearMonth.Year, calender.YearMonth.Month)
+
+		err = u.templateService.SaveTo(filepath.Join(outputDir, archiveFile), "calender", Archive{
+			PageTitle: calender.YearMonth.FileString(),
+			Date:      calender.YearMonth.TitleString(),
+			Og: OpenGraph{
+				Url:         "https://nippo.c18t.net/" + calender.YearMonth.PathString(),
+				Title:       calender.YearMonth.FileString() + " / 日報 - nippo.c18t.net",
+				Description: "ɯ̹t͡ɕʲi's daily reports for " + calender.YearMonth.FileString() + ".",
+				ImageUrl:    "https://nippo.c18t.net/nippo_ogp.png",
+			},
+			Calender: calender,
+		})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

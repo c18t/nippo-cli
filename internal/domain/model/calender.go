@@ -52,7 +52,7 @@ func NewCalender(ym CalenderYearMonth, nippoList []Nippo) (*Calender, error) {
 
 func NewCalenderYearMonth(fileName string) (CalenderYearMonth, error) {
 	ym := CalenderYearMonth{}
-	month, err := time.Parse("2006-01-02", fileName[:10])
+	month, err := time.Parse("2006-01-02", fileName[:7]+"-01")
 	if err != nil {
 		return ym, err
 	}
