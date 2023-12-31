@@ -6,12 +6,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/c18t/nippo-cli/internal/adapter/gateway"
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/model"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/domain/service"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/gorilla/feeds"
 	"go.uber.org/dig"
 )
 
@@ -20,6 +22,7 @@ type buildSiteInteractor struct {
 	localNippoQuery repository.LocalNippoQuery
 	nippoService    service.NippoFacade
 	templateService service.TemplateService
+	fileProvider    gateway.LocalFileProvider
 	presenter       presenter.BuildSitePresenter
 }
 
@@ -29,6 +32,7 @@ type inBuildSiteInteractor struct {
 	LocalNippoQuery repository.LocalNippoQuery
 	NippoService    service.NippoFacade
 	TemplateService service.TemplateService
+	FileProvider    gateway.LocalFileProvider
 	Presenter       presenter.BuildSitePresenter
 }
 
@@ -38,6 +42,7 @@ func NewBuildSiteInteractor(buildDeps inBuildSiteInteractor) port.BuildSiteUseca
 		localNippoQuery: buildDeps.LocalNippoQuery,
 		nippoService:    buildDeps.NippoService,
 		templateService: buildDeps.TemplateService,
+		fileProvider:    buildDeps.FileProvider,
 		presenter:       buildDeps.Presenter,
 	}
 }
@@ -70,6 +75,12 @@ func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
 	}
 
 	err = u.buildArchivePage()
+	if err != nil {
+		u.presenter.Suspend(err)
+		return
+	}
+
+	err = u.buildFeed()
 	if err != nil {
 		u.presenter.Suspend(err)
 		return
@@ -108,6 +119,7 @@ type OpenGraph struct {
 
 // page content
 type Content struct {
+	Url       string
 	PageTitle string
 	Date      string
 	Og        OpenGraph
@@ -115,6 +127,7 @@ type Content struct {
 }
 
 type Archive struct {
+	Url       string
 	PageTitle string
 	Date      string
 	Og        OpenGraph
@@ -138,6 +151,7 @@ func (u *buildSiteInteractor) buildIndexPage() error {
 	}
 
 	err = u.templateService.SaveTo(filepath.Join(outputDir, "index.html"), "index", Content{
+		Url:  "https://nippo.c18t.net/",
 		Date: nippo.Date.TitleString(),
 		Og: OpenGraph{
 			Url:         "https://nippo.c18t.net/",
@@ -170,6 +184,7 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 
 		nippoFile := fmt.Sprintf("%v.html", nippo.Date.PathString())
 		err = u.templateService.SaveTo(filepath.Join(outputDir, nippoFile), "nippo", Content{
+			Url:       "https://nippo.c18t.net/" + nippo.Date.PathString(),
 			PageTitle: nippo.Date.FileString(),
 			Date:      nippo.Date.TitleString(),
 			Og: OpenGraph{
@@ -219,6 +234,7 @@ func (u *buildSiteInteractor) buildArchivePage() error {
 		archiveFile := fmt.Sprintf("%04d%02d.html", calender.YearMonth.Year, calender.YearMonth.Month)
 
 		err = u.templateService.SaveTo(filepath.Join(outputDir, archiveFile), "calender", Archive{
+			Url:       "https://nippo.c18t.net/" + calender.YearMonth.PathString(),
 			PageTitle: calender.YearMonth.FileString(),
 			Date:      calender.YearMonth.TitleString(),
 			Og: OpenGraph{
@@ -233,5 +249,55 @@ func (u *buildSiteInteractor) buildArchivePage() error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (u *buildSiteInteractor) buildFeed() error {
+	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
+	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
+
+	author := &feeds.Author{Name: "ɯ̹t͡ɕʲi"}
+
+	feed := &feeds.Feed{
+		Title:       "日報 - nippo.c18t.net",
+		Link:        &feeds.Link{Href: "https://nippo.c18t.net"},
+		Description: "ɯ̹t͡ɕʲi's daily reports.",
+		Author:      author,
+		Created:     time.Now(),
+	}
+
+	nippoList, err := u.localNippoQuery.List(&repository.QueryListParam{
+		Folders: []string{cacheDir},
+	}, &repository.QueryListOption{})
+	if err != nil {
+		return err
+	}
+
+	for _, nippo := range nippoList[len(nippoList)-10:] {
+		nippoHtml, err := nippo.GetHtml()
+		if err != nil {
+			return err
+		}
+
+		feed.Items = append(feed.Items, &feeds.Item{
+			Title:       nippo.Date.FileString() + " / 日報 - nippo.c18t.net",
+			Link:        &feeds.Link{Href: "https://nippo.c18t.net/" + nippo.Date.PathString()},
+			Id:          "https://nippo.c18t.net/" + nippo.Date.PathString(),
+			Description: "ɯ̹t͡ɕʲi's daily report for " + nippo.Date.FileString() + ".",
+			Author:      author,
+			Created:     time.Date(nippo.Date.Year(), nippo.Date.Month(), nippo.Date.Day(), 0, 0, 0, 0, time.Local),
+			Content:     string(nippoHtml),
+		})
+	}
+
+	feed.Sort(func(i, j *feeds.Item) bool {
+		return i.Created.After(j.Created)
+	})
+
+	rss, err := feed.ToAtom()
+	if err != nil {
+		return err
+	}
+	u.fileProvider.Write(filepath.Join(outputDir, "feed.xml"), []byte(rss))
 	return nil
 }
