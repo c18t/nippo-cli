@@ -127,19 +127,21 @@ type OpenGraph struct {
 
 // page content
 type Content struct {
-	Url       string
-	PageTitle string
-	Date      string
-	Og        OpenGraph
-	Content   template.HTML
+	Url         string
+	PageTitle   string
+	Description string
+	Date        string
+	Og          OpenGraph
+	Content     template.HTML
 }
 
 type Archive struct {
-	Url       string
-	PageTitle string
-	Date      string
-	Og        OpenGraph
-	Calender  *model.Calender
+	Url         string
+	PageTitle   string
+	Description string
+	Date        string
+	Og          OpenGraph
+	Calender    *model.Calender
 }
 
 func (u *buildSiteInteractor) buildIndexPage() error {
@@ -159,8 +161,9 @@ func (u *buildSiteInteractor) buildIndexPage() error {
 	}
 
 	err = u.templateService.SaveTo(filepath.Join(outputDir, "index.html"), "index", Content{
-		Url:  "https://nippo.c18t.net/",
-		Date: nippo.Date.TitleString(),
+		Url:         "https://nippo.c18t.net/",
+		Date:        nippo.Date.TitleString(),
+		Description: "ɯ̹t͡ɕʲi's daily reports.",
 		Og: OpenGraph{
 			Url:         "https://nippo.c18t.net/",
 			Title:       "日報 - nippo.c18t.net",
@@ -192,9 +195,10 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 
 		nippoFile := fmt.Sprintf("%v.html", nippo.Date.PathString())
 		err = u.templateService.SaveTo(filepath.Join(outputDir, nippoFile), "nippo", Content{
-			Url:       "https://nippo.c18t.net/" + nippo.Date.PathString(),
-			PageTitle: nippo.Date.FileString(),
-			Date:      nippo.Date.TitleString(),
+			Url:         "https://nippo.c18t.net/" + nippo.Date.PathString(),
+			PageTitle:   nippo.Date.FileString(),
+			Description: "ɯ̹t͡ɕʲi's daily report for " + nippo.Date.FileString() + ".",
+			Date:        nippo.Date.TitleString(),
 			Og: OpenGraph{
 				Url:         "https://nippo.c18t.net/" + nippo.Date.PathString(),
 				Title:       nippo.Date.FileString() + " / 日報 - nippo.c18t.net",
@@ -242,9 +246,10 @@ func (u *buildSiteInteractor) buildArchivePage() error {
 		archiveFile := fmt.Sprintf("%04d%02d.html", calender.YearMonth.Year, calender.YearMonth.Month)
 
 		err = u.templateService.SaveTo(filepath.Join(outputDir, archiveFile), "calender", Archive{
-			Url:       "https://nippo.c18t.net/" + calender.YearMonth.PathString(),
-			PageTitle: calender.YearMonth.FileString(),
-			Date:      calender.YearMonth.TitleString(),
+			Url:         "https://nippo.c18t.net/" + calender.YearMonth.PathString(),
+			PageTitle:   calender.YearMonth.FileString(),
+			Description: "ɯ̹t͡ɕʲi's daily reports for " + calender.YearMonth.FileString() + ".",
+			Date:        calender.YearMonth.TitleString(),
 			Og: OpenGraph{
 				Url:         "https://nippo.c18t.net/" + calender.YearMonth.PathString(),
 				Title:       calender.YearMonth.FileString() + " / 日報 - nippo.c18t.net",
