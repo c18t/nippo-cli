@@ -52,44 +52,37 @@ func NewBuildSiteInteractor(buildDeps inBuildSiteInteractor) port.BuildSiteUseca
 func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
 	output := &port.BuildSiteUsecaseOutputData{}
 
-	err := u.downloadNippo()
-	if err != nil {
+	if err := u.downloadNippo(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 
-	err = u.assetRepository.CleanBuildCache()
-	if err != nil {
+	if err := u.assetRepository.CleanBuildCache(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 
-	err = u.buildIndexPage()
-	if err != nil {
+	if err := u.buildIndexPage(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 
-	err = u.buildNippoPage()
-	if err != nil {
+	if err := u.buildNippoPage(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 
-	err = u.buildArchivePage()
-	if err != nil {
+	if err := u.buildArchivePage(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 
-	err = u.buildFeed()
-	if err != nil {
+	if err := u.buildFeed(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 
-	err = u.buildSiteMap()
-	if err != nil {
+	if err := u.buildSiteMap(); err != nil {
 		u.presenter.Suspend(err)
 		return
 	}

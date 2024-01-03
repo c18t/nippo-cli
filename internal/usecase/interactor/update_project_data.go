@@ -34,7 +34,7 @@ func NewUpdateProjectDataInteractor(updateDeps inUpdateProjectDataInteractor) po
 func (u *updateProjectDataInteractor) Handle(input *port.UpdateProjectDataUsecaseInputData) {
 	output := &port.UpdateProjectDataUsecaseOutputData{}
 
-	output.Message = "update project files... "
+	output.Message = "updating project files... "
 	u.presenter.Progress(output)
 
 	err := u.downloadProject()

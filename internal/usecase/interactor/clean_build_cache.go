@@ -28,14 +28,24 @@ func NewCleanBuildCacheInteractor(cleanDeps inCleanBuildCacheInteractor) port.Cl
 func (u *cleanBuildCacheInteractor) Handle(input *port.CleanBuildCacheUsecaseInputData) {
 	output := &port.CleanBuildCacheUsecaseOutputData{}
 
-	output.Message = "clean cache files... "
+	output.Message = "cleaning cache files... "
 	u.presenter.Progress(output)
 
-	u.repository.CleanNippoCache()
-	core.Cfg.ResetLastUpdateCheckTimestamp()
-	core.Cfg.SaveConfig()
+	if err := u.repository.CleanNippoCache(); err != nil {
+		u.presenter.Suspend(err)
+		return
+	}
 
-	u.repository.CleanBuildCache()
+	core.Cfg.ResetLastUpdateCheckTimestamp()
+	if err := core.Cfg.SaveConfig(); err != nil {
+		u.presenter.Suspend(err)
+		return
+	}
+
+	if err := u.repository.CleanBuildCache(); err != nil {
+		u.presenter.Suspend(err)
+		return
+	}
 
 	output.Message = "ok. "
 	u.presenter.Complete(output)

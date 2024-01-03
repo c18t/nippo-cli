@@ -34,7 +34,7 @@ func NewDeploySiteInteractor(deployDeps inDeploySiteInteractor) port.DeploySiteU
 func (u *deploySiteInteractor) Handle(input *port.DeploySiteUsecaseInputData) {
 	output := &port.DeploySiteUsecaseOutputData{}
 
-	output.Message = "deploy to vercel... "
+	output.Message = "deploying to vercel... "
 	u.presenter.Progress(output)
 
 	dataDir := filepath.Join(core.Cfg.GetDataDir(), "output")
