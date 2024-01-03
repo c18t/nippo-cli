@@ -4,6 +4,7 @@ import (
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
 	"github.com/c18t/nippo-cli/internal/adapter/gateway"
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
+	"github.com/c18t/nippo-cli/internal/adapter/presenter/view"
 	"github.com/c18t/nippo-cli/internal/domain/logic/repository"
 	"github.com/c18t/nippo-cli/internal/domain/logic/service"
 	"github.com/c18t/nippo-cli/internal/usecase/interactor"
@@ -30,12 +31,16 @@ func NewContainer() *dig.Container {
 
 	// adapter/presenter
 	container.Provide(presenter.NewRootVersionPresenter)
-	container.Provide(presenter.NewInitDownloadProjectPresenter)
+	container.Provide(presenter.NewInitSettingPresenter)
 	container.Provide(presenter.NewInitSaveDriveTokenPresenter)
 	container.Provide(presenter.NewUpdateProjectDataPresenter)
 	container.Provide(presenter.NewBuildSitePresenter)
 	container.Provide(presenter.NewCleanBuildCachePresenter)
 	container.Provide(presenter.NewDeploySitePresenter)
+
+	// adapter/presenter/view
+	container.Provide(view.NewInitViewProvider)
+	container.Provide(view.NewConfigureProjectView)
 
 	// usecase/port
 	container.Provide(port.NewRootUsecaseBus)
@@ -47,7 +52,7 @@ func NewContainer() *dig.Container {
 
 	// usecase/intractor
 	container.Provide(interactor.NewRootVersionInteractor)
-	container.Provide(interactor.NewInitDownloadProjectInteractor)
+	container.Provide(interactor.NewInitSettingInteractor)
 	container.Provide(interactor.NewInitSaveDriveTokenInteractor)
 	container.Provide(interactor.NewUpdateProjectDataInteractor)
 	container.Provide(interactor.NewBuildSiteInteractor)

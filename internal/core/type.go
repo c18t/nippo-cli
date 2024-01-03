@@ -9,3 +9,5 @@ type Controller interface {
 }
 
 type Usecase interface{}
+
+type ViewModel interface{}

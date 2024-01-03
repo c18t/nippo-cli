@@ -21,7 +21,7 @@ func NewInitController(bus port.InitUsecaseBus) InitController {
 }
 
 func (c *initController) Exec(cmd *cobra.Command, args []string) (err error) {
-	c.bus.Handle(&port.InitDownloadProjectUsecaseInputData{})
+	c.bus.Handle(&port.InitSettingUsecaseInputData{})
 	c.bus.Handle(&port.InitSaveDriveTokenUsecaseInputData{})
 	return
 }

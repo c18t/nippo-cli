@@ -14,15 +14,27 @@ type InitUsecaseOutputDataImpl struct {
 	InitUsecaseOutputData
 	Message string
 }
-type InitDownloadProjectUsecaseInputData struct {
+type InitSettingUsecaseInputData struct {
 	InitUsecaseInputData
 }
-type InitDownloadProjectUsecaseOutpuData struct {
+type InitSettingUsecaseOutputData struct {
 	InitUsecaseOutputDataImpl
+	Input             interface{}
+	Project           InitSettingProject
+	ProjectConfigured bool
 }
-type InitDownloadProjectUsecase interface {
+type InitSettingProject struct {
+	Url          InitSettingProjectUrl
+	TemplatePath InitSettingProjectTemplatePath
+	AssetPath    InitSettingProjectAssetPath
+}
+type InitSettingProjectUrl string
+type InitSettingProjectTemplatePath string
+type InitSettingProjectAssetPath string
+
+type InitSettingUsecase interface {
 	core.Usecase
-	Handle(input *InitDownloadProjectUsecaseInputData)
+	Handle(input *InitSettingUsecaseInputData)
 }
 
 type InitSaveDriveTokenUsecaseInputData struct {
@@ -40,26 +52,26 @@ type InitUsecaseBus interface {
 	Handle(input InitUsecaseInputData)
 }
 type initUsecaseBus struct {
-	downloadProject InitDownloadProjectUsecase
-	saveDriveToken  InitSaveDriveTokenUsecase
+	configure      InitSettingUsecase
+	saveDriveToken InitSaveDriveTokenUsecase
 }
 type inInitUsecaseBus struct {
 	dig.In
-	DownloadProject InitDownloadProjectUsecase
-	SaveDriveToken  InitSaveDriveTokenUsecase
+	Configure      InitSettingUsecase
+	SaveDriveToken InitSaveDriveTokenUsecase
 }
 
 func NewInitUsecaseBus(bus inInitUsecaseBus) InitUsecaseBus {
 	return &initUsecaseBus{
-		downloadProject: bus.DownloadProject,
-		saveDriveToken:  bus.SaveDriveToken,
+		configure:      bus.Configure,
+		saveDriveToken: bus.SaveDriveToken,
 	}
 }
 
 func (bus *initUsecaseBus) Handle(input InitUsecaseInputData) {
 	switch data := input.(type) {
-	case *InitDownloadProjectUsecaseInputData:
-		bus.downloadProject.Handle(data)
+	case *InitSettingUsecaseInputData:
+		bus.configure.Handle(data)
 	case *InitSaveDriveTokenUsecaseInputData:
 		bus.saveDriveToken.Handle(data)
 	default:
