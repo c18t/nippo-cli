@@ -28,7 +28,7 @@
           "to": "/workspaces/nippo-cli"
         },
         {
-          "from": "${userHome}/.go",
+          "from": "${userHome}/go",
           "to": "/go"
         }
       ],
