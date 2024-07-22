@@ -5,7 +5,7 @@ go 1.22.5
 require (
 	github.com/carlosstrand/go-sitemap v0.0.0-20191230193616-37cd6896357b // direct
 	github.com/gomarkdown/markdown v0.0.0-20231115200524-a660076da3fd // direct
-	github.com/gorilla/feeds v1.1.2 // direct
+	github.com/gorilla/feeds v1.2.0 // direct
 	github.com/manifoldco/promptui v0.9.0 // direct
 	github.com/spf13/cobra v1.8.1 // direct
 	github.com/spf13/viper v1.18.1 // direct
