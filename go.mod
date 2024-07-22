@@ -1,6 +1,6 @@
 module github.com/c18t/nippo-cli
 
-go 1.21.8
+go 1.22.5
 
 require (
 	github.com/carlosstrand/go-sitemap v0.0.0-20191230193616-37cd6896357b // direct

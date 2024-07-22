@@ -1,0 +1,9 @@
+// https://code.visualstudio.com/docs/getstarted/settings
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[go][go.mod][go.sum][gotmpl][go.work]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "prettier.useEditorConfig": true
+}
