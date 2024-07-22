@@ -1,4 +1,4 @@
-exclude: ^.scaffdog/.*.md$
+exclude: ^.scaffdog/.*.md|^.github/pull_request_template.md$
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
