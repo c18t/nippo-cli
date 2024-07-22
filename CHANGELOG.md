@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.14.2](https://github.com/c18t/nippo-cli/compare/v0.14.1...v0.14.2) - 2024-07-22
+- align devcontainer.json and compose.yaml configurations by @c18t in https://github.com/c18t/nippo-cli/pull/6
+
 ## [v0.14.1](https://github.com/c18t/nippo-cli/compare/v0.14.0...v0.14.1) - 2024-07-22
 - add github action and pr template by @c18t in https://github.com/c18t/nippo-cli/pull/3
 
