@@ -229,23 +229,25 @@ import (
 var Injector{{ command_pascal }} = Add{{ command_pascal }}Provider()
 
 func Add{{ command_pascal }}Provider() *do.RootScope {
+	var i = Injector.Clone()
+
 	// adapter/controller
-	do.Provide(Injector, controller.New{{ command_pascal }}Controller)
+	do.Provide(i, controller.New{{ command_pascal }}Controller)
 
 	// usecase/port
-	do.Provide(Injector, port.New{{ command_pascal }}UseCaseBus)
+	do.Provide(i, port.New{{ command_pascal }}UseCaseBus)
 
 	// usecase/intractor
 	{{ for subcommand in (subcommand_list | split ',') -}}
 	{{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
-	do.Provide(Injector, interactor.New{{ prefix_pascal }}Interactor)
+	do.Provide(i, interactor.New{{ prefix_pascal }}Interactor)
 	{{ end }}
 	// adapter/presenter
 	{{ for subcommand in (subcommand_list | split ',') -}}
 	{{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
-	do.Provide(Injector, presenter.New{{ prefix_pascal }}Presenter)
+	do.Provide(i, presenter.New{{ prefix_pascal }}Presenter)
 	{{ end }}
-	return Injector
+	return i
 }
 
 ```
