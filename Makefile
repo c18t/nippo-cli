@@ -19,13 +19,13 @@ GO_BUILD:=-ldflags '${GO_LDFLAGS}' -trimpath
 all: build
 
 .PHONY: build
-build: nippo
+build: app
 
 .PHONY: debug
 debug: BINDIR:=/tmp
 debug: GO_BUILD:=-gcflags='all=-N -l' -ldflags '${GO_LDFLAGS_VERSION}'
-debug: nippo
+debug: app
 
-.PHONY: nippo
-nippo: nippo/nippo.go
-	go build -o $(BINDIR)/$@ $(GO_BUILD) $^
+.PHONY: app
+app: nippo/nippo.go
+	go build -o $(BINDIR)/$(<F:.go=) $(GO_BUILD) $^

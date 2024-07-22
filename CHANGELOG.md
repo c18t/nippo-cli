@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.14.3](https://github.com/c18t/nippo-cli/compare/v0.14.2...v0.14.3) - 2024-07-22
+- add dependabot settings by @c18t in https://github.com/c18t/nippo-cli/pull/10
+- Bump github.com/spf13/cobra from 1.8.0 to 1.8.1 by @dependabot in https://github.com/c18t/nippo-cli/pull/13
+- Bump github.com/gorilla/feeds from 1.1.2 to 1.2.0 by @dependabot in https://github.com/c18t/nippo-cli/pull/12
+- Bump google.golang.org/api from 0.154.0 to 0.189.0 by @dependabot in https://github.com/c18t/nippo-cli/pull/14
+- Bump github.com/spf13/viper from 1.18.1 to 1.19.0 by @dependabot in https://github.com/c18t/nippo-cli/pull/16
+
+## [v0.14.3](https://github.com/c18t/nippo-cli/compare/v0.14.2...v0.14.3) - 2024-07-22
+- add dependabot settings by @c18t in https://github.com/c18t/nippo-cli/pull/10
+
+## [v0.14.2](https://github.com/c18t/nippo-cli/compare/v0.14.1...v0.14.2) - 2024-07-22
+- align devcontainer.json and compose.yaml configurations by @c18t in https://github.com/c18t/nippo-cli/pull/6
+
 ## [v0.14.1](https://github.com/c18t/nippo-cli/compare/v0.14.0...v0.14.1) - 2024-07-22
 
 - add github action and pr template by @c18t in https://github.com/c18t/nippo-cli/pull/3
