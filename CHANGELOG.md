@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.14.4](https://github.com/c18t/nippo-cli/compare/v0.14.3...v0.14.4) - 2024-07-22
+- Bump github.com/spf13/cobra from 1.8.0 to 1.8.1 by @dependabot in https://github.com/c18t/nippo-cli/pull/13
+
 ## [v0.14.3](https://github.com/c18t/nippo-cli/compare/v0.14.2...v0.14.3) - 2024-07-22
 - add dependabot settings by @c18t in https://github.com/c18t/nippo-cli/pull/10
 
