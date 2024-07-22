@@ -4,35 +4,34 @@ import (
 	"reflect"
 
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
+	"github.com/spf13/cobra"
 )
 
-type CleanPresenter interface {
-	Progress(output port.CleanUsecaseOutputData)
-	Complete(output port.CleanUsecaseOutputData)
+type CleanCommandPresenter interface {
+	Progress(output *port.CleanCommandUseCaseOutputData)
+	Complete(output *port.CleanCommandUseCaseOutputData)
 	Suspend(err error)
 }
-type CleanBuildCachePresenter interface {
-	CleanPresenter
-}
 
-type cleanPresenter struct {
+type cleanCommandPresenter struct {
 	base ConsolePresenter
 }
 
-func NewCleanBuildCachePresenter() CleanBuildCachePresenter {
-	return &cleanPresenter{&consolePresenter{}}
+func NewCleanCommandPresenter(i do.Injector) (CleanCommandPresenter, error) {
+	return &cleanCommandPresenter{&consolePresenter{}}, nil
 }
 
-func (p *cleanPresenter) Progress(output port.CleanUsecaseOutputData) {
+func (p *cleanCommandPresenter) Progress(output *port.CleanCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
 }
 
-func (p *cleanPresenter) Complete(output port.CleanUsecaseOutputData) {
+func (p *cleanCommandPresenter) Complete(output *port.CleanCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Complete(v.String())
 }
 
-func (p *cleanPresenter) Suspend(err error) {
-	p.base.Suspend(err)
+func (p *cleanCommandPresenter) Suspend(err error) {
+	cobra.CheckErr(err)
 }

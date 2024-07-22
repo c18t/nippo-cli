@@ -6,12 +6,10 @@ package cmd
 
 import (
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
-	"github.com/c18t/nippo-cli/internal/core"
-	"github.com/c18t/nippo-cli/internal/inject"
 	"github.com/spf13/cobra"
 )
 
-var update controller.CleanController
+var update controller.UpdateController
 
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
@@ -33,12 +31,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// updateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func createUpdateCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.UpdateController) error {
-		update = c
-		return nil
-	})
-	return update.Exec
 }

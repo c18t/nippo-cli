@@ -5,6 +5,7 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -23,13 +24,16 @@ type RootController interface {
 }
 
 type rootController struct {
-	bus     port.RootUsecaseBus
+	bus     port.RootUseCaseBus
 	params  *RootParams
 	verison string
 }
 
-func NewRootController(bus port.RootUsecaseBus) RootController {
-	return &rootController{bus: bus, params: &RootParams{}}
+func NewRootController(i do.Injector) (RootController, error) {
+	return &rootController{
+		bus:    do.MustInvoke[port.RootUseCaseBus](i),
+		params: &RootParams{},
+	}, nil
 }
 
 func (c *rootController) Version(v ...string) string {
@@ -53,7 +57,7 @@ func (c *rootController) InitConfig() {
 func (c *rootController) Exec(cmd *cobra.Command, args []string) (err error) {
 	if c.params.Version {
 		// show nippo-cli version
-		c.bus.Handle(&port.RootVersionUsecaseInputData{Version: c.verison})
+		c.bus.Handle(&port.RootCommandUseCaseInputData{Version: c.verison})
 	} else if c.params.LicenseNotice {
 		// show license notice
 		fmt.Println("set --license-notice")

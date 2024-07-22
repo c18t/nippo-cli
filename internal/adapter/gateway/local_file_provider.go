@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/c18t/nippo-cli/internal/domain/repository"
+	"github.com/samber/do/v2"
 )
 
 type LocalFileProvider interface {
@@ -19,8 +20,8 @@ type LocalFileProvider interface {
 type localFileProvider struct {
 }
 
-func NewLocalFileProvider() LocalFileProvider {
-	return &localFileProvider{}
+func NewLocalFileProvider(i do.Injector) (LocalFileProvider, error) {
+	return &localFileProvider{}, nil
 }
 
 func (g *localFileProvider) List(param *repository.QueryListParam) ([]os.DirEntry, error) {

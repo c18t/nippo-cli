@@ -16,41 +16,31 @@ import (
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"github.com/carlosstrand/go-sitemap"
 	"github.com/gorilla/feeds"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
-type buildSiteInteractor struct {
-	assetRepository repository.AssetRepository
-	localNippoQuery repository.LocalNippoQuery
-	nippoService    service.NippoFacade
-	templateService service.TemplateService
-	fileProvider    gateway.LocalFileProvider
-	presenter       presenter.BuildSitePresenter
+type buildCommandInteractor struct {
+	assetRepository repository.AssetRepository      `do:""`
+	localNippoQuery repository.LocalNippoQuery      `do:""`
+	nippoService    service.NippoFacade             `do:""`
+	templateService service.TemplateService         `do:""`
+	fileProvider    gateway.LocalFileProvider       `do:""`
+	presenter       presenter.BuildCommandPresenter `do:""`
 }
 
-type inBuildSiteInteractor struct {
-	dig.In
-	AssetRepository repository.AssetRepository
-	LocalNippoQuery repository.LocalNippoQuery
-	NippoService    service.NippoFacade
-	TemplateService service.TemplateService
-	FileProvider    gateway.LocalFileProvider
-	Presenter       presenter.BuildSitePresenter
+func NewBuildCommandInteractor(i do.Injector) (port.BuildCommandUseCase, error) {
+	return &buildCommandInteractor{
+		assetRepository: do.MustInvoke[repository.AssetRepository](i),
+		localNippoQuery: do.MustInvoke[repository.LocalNippoQuery](i),
+		nippoService:    do.MustInvoke[service.NippoFacade](i),
+		templateService: do.MustInvoke[service.TemplateService](i),
+		fileProvider:    do.MustInvoke[gateway.LocalFileProvider](i),
+		presenter:       do.MustInvoke[presenter.BuildCommandPresenter](i),
+	}, nil
 }
 
-func NewBuildSiteInteractor(buildDeps inBuildSiteInteractor) port.BuildSiteUsecase {
-	return &buildSiteInteractor{
-		assetRepository: buildDeps.AssetRepository,
-		localNippoQuery: buildDeps.LocalNippoQuery,
-		nippoService:    buildDeps.NippoService,
-		templateService: buildDeps.TemplateService,
-		fileProvider:    buildDeps.FileProvider,
-		presenter:       buildDeps.Presenter,
-	}
-}
-
-func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
-	output := &port.BuildSiteUsecaseOutputData{}
+func (u *buildCommandInteractor) Handle(input *port.BuildCommandUseCaseInputData) {
+	output := &port.BuildCommandUseCaseOutputData{}
 
 	if err := u.downloadNippo(); err != nil {
 		u.presenter.Suspend(err)
@@ -91,7 +81,7 @@ func (u *buildSiteInteractor) Handle(input *port.BuildSiteUsecaseInputData) {
 	u.presenter.Complete(output)
 }
 
-func (u *buildSiteInteractor) downloadNippo() error {
+func (u *buildCommandInteractor) downloadNippo() error {
 	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
 		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
 		Query: &repository.QueryListParam{
@@ -137,7 +127,7 @@ type Archive struct {
 	Calender    *model.Calender
 }
 
-func (u *buildSiteInteractor) buildIndexPage() error {
+func (u *buildCommandInteractor) buildIndexPage() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
@@ -168,7 +158,7 @@ func (u *buildSiteInteractor) buildIndexPage() error {
 	return err
 }
 
-func (u *buildSiteInteractor) buildNippoPage() error {
+func (u *buildCommandInteractor) buildNippoPage() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
@@ -207,7 +197,7 @@ func (u *buildSiteInteractor) buildNippoPage() error {
 	return nil
 }
 
-func (u *buildSiteInteractor) buildArchivePage() error {
+func (u *buildCommandInteractor) buildArchivePage() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
@@ -258,7 +248,7 @@ func (u *buildSiteInteractor) buildArchivePage() error {
 	return nil
 }
 
-func (u *buildSiteInteractor) buildFeed() error {
+func (u *buildCommandInteractor) buildFeed() error {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
@@ -308,7 +298,7 @@ func (u *buildSiteInteractor) buildFeed() error {
 	return nil
 }
 
-func (u *buildSiteInteractor) buildSiteMap() error {
+func (u *buildCommandInteractor) buildSiteMap() error {
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
 	files, err := u.fileProvider.List(&repository.QueryListParam{

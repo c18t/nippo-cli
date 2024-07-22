@@ -30,7 +30,7 @@ import (
 )
 
 func create{{ command_pascal }}Command() core.RunEFunc {
-	cmd, err := do.Invoke[controller.{{ command_pascal }}Controller](inject.Injector)
+	cmd, err := do.Invoke[controller.{{ command_pascal }}Controller](inject.Injector{{ command_pascal }})
 	cobra.CheckErr(err)
 	return cmd.Exec
 }
@@ -102,7 +102,7 @@ type {{ command_pascal }}UseCaseOutputData interface{}
 type {{ prefix }}UseCaseInputData struct {
 	{{ command_pascal }}UseCaseInputData
 }
-type {{ prefix }}UseCaseOutpuData struct {
+type {{ prefix }}UseCaseOutputData struct {
 	{{ command_pascal }}UseCaseOutputData
 	Message string
 }
@@ -167,7 +167,7 @@ func New{{ prefix_pascal }}Interactor(i do.Injector) (port.{{ prefix_pascal }}Us
 }
 
 func (u *{{ prefix_camel }}Interactor) Handle(input *port.{{ prefix_pascal }}UseCaseInputData) {
-	output := &port.{{ prefix_pascal }}UseCaseOutpuData{}
+	output := &port.{{ prefix_pascal }}UseCaseOutputData{}
 	output.Message = "{{ command_snake }} {{ subcommand | snake }} called."
 	u.presenter.Complete(output)
 }
@@ -191,7 +191,7 @@ import (
 {{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
 {{ prefix_camel := prefix_pascal | camel }}
 type {{ prefix_pascal }}Presenter interface {
-	Complete(output *port.{{ prefix_pascal }}UseCaseOutpuData)
+	Complete(output *port.{{ prefix_pascal }}UseCaseOutputData)
 	Suspend(err error)
 }
 
@@ -202,7 +202,7 @@ func New{{ prefix_pascal }}Presenter(i do.Injector) ({{ prefix_pascal }}Presente
 	return &{{ prefix_camel }}Presenter{}, nil
 }
 
-func (p *{{ prefix_camel }}Presenter) Complete(output *port.{{ prefix_pascal }}UseCaseOutpuData) {
+func (p *{{ prefix_camel }}Presenter) Complete(output *port.{{ prefix_pascal }}UseCaseOutputData) {
 	fmt.Printf("%v\n", output)
 }
 
@@ -229,23 +229,25 @@ import (
 var Injector{{ command_pascal }} = Add{{ command_pascal }}Provider()
 
 func Add{{ command_pascal }}Provider() *do.RootScope {
+	var i = Injector.Clone()
+
 	// adapter/controller
-	do.Provide[controller.{{ command_pascal }}Controller](Injector, controller.New{{ command_pascal }}Controller)
+	do.Provide(i, controller.New{{ command_pascal }}Controller)
 
 	// usecase/port
-	do.Provide[port.{{ command_pascal }}UseCaseBus](Injector, port.New{{ command_pascal }}UseCaseBus)
+	do.Provide(i, port.New{{ command_pascal }}UseCaseBus)
 
 	// usecase/intractor
 	{{ for subcommand in (subcommand_list | split ',') -}}
 	{{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
-	do.Provide[port.{{ prefix_pascal }}UseCase](Injector, interactor.New{{ prefix_pascal }}Interactor)
+	do.Provide(i, interactor.New{{ prefix_pascal }}Interactor)
 	{{ end }}
 	// adapter/presenter
 	{{ for subcommand in (subcommand_list | split ',') -}}
 	{{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
-	do.Provide[presenter.{{ prefix_pascal }}Presenter](Injector, presenter.New{{ prefix_pascal }}Presenter)
+	do.Provide(i, presenter.New{{ prefix_pascal }}Presenter)
 	{{ end }}
-	return Injector
+	return i
 }
 
 ```

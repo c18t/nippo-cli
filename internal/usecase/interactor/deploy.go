@@ -10,30 +10,23 @@ import (
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
-type deploySiteInteractor struct {
-	provider  gateway.LocalFileProvider
-	presenter presenter.DeploySitePresenter
+type deployCommandInteractor struct {
+	provider  gateway.LocalFileProvider        `do:""`
+	presenter presenter.DeployCommandPresenter `do:""`
 }
 
-type inDeploySiteInteractor struct {
-	dig.In
-	Provider  gateway.LocalFileProvider
-	Presenter presenter.DeploySitePresenter
+func NewDeployCommandInteractor(i do.Injector) (port.DeployCommandUseCase, error) {
+	return &deployCommandInteractor{
+		provider:  do.MustInvoke[gateway.LocalFileProvider](i),
+		presenter: do.MustInvoke[presenter.DeployCommandPresenter](i),
+	}, nil
 }
 
-func NewDeploySiteInteractor(deployDeps inDeploySiteInteractor) port.DeploySiteUsecase {
-	return &deploySiteInteractor{
-		provider:  deployDeps.Provider,
-		presenter: deployDeps.Presenter,
-	}
-}
-
-func (u *deploySiteInteractor) Handle(input *port.DeploySiteUsecaseInputData) {
-	output := &port.DeploySiteUsecaseOutputData{}
-
+func (u *deployCommandInteractor) Handle(input *port.DeployCommandUseCaseInputData) {
+	output := &port.DeployCommandUseCaseOutputData{}
 	output.Message = "deploying to vercel... "
 	u.presenter.Progress(output)
 

@@ -7,9 +7,9 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20231115200524-a660076da3fd // direct
 	github.com/gorilla/feeds v1.2.0 // direct
 	github.com/manifoldco/promptui v0.9.0 // direct
+	github.com/samber/do/v2 v2.0.0-beta.7
 	github.com/spf13/cobra v1.8.1 // direct
 	github.com/spf13/viper v1.19.0 // direct
-	go.uber.org/dig v1.17.1 // direct
 	golang.org/x/oauth2 v0.21.0 // direct
 	google.golang.org/api v0.189.0 // direct
 )
@@ -37,6 +37,7 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/samber/go-type-to-string v1.4.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect

@@ -5,7 +5,7 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/manifoldco/promptui"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
 type InitViewProvider interface {
@@ -14,15 +14,11 @@ type InitViewProvider interface {
 type initViewProvider struct {
 	configureProjectView ConfigureProjectView
 }
-type inInitViewProvider struct {
-	dig.In
-	ConfigureProjectView ConfigureProjectView
-}
 
-func NewInitViewProvider(vpDeps inInitViewProvider) InitViewProvider {
+func NewInitViewProvider(i do.Injector) (InitViewProvider, error) {
 	return &initViewProvider{
-		configureProjectView: vpDeps.ConfigureProjectView,
-	}
+		configureProjectView: do.MustInvoke[ConfigureProjectView](i),
+	}, nil
 }
 
 func (vp *initViewProvider) Handle(vm core.ViewModel) {
@@ -53,8 +49,8 @@ type ConfigureProjectView interface {
 }
 type configureProjectView struct{}
 
-func NewConfigureProjectView() ConfigureProjectView {
-	return &configureProjectView{}
+func NewConfigureProjectView(i do.Injector) (ConfigureProjectView, error) {
+	return &configureProjectView{}, nil
 }
 
 func (v *configureProjectView) Update(vm *ConfigureProjectViewModel) {

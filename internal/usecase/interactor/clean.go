@@ -5,28 +5,23 @@ import (
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
-type cleanBuildCacheInteractor struct {
-	repository repository.AssetRepository
-	presenter  presenter.CleanBuildCachePresenter
-}
-type inCleanBuildCacheInteractor struct {
-	dig.In
-	Repository repository.AssetRepository
-	Presenter  presenter.CleanBuildCachePresenter
+type cleanCommandInteractor struct {
+	repository repository.AssetRepository      `do:""`
+	presenter  presenter.CleanCommandPresenter `do:""`
 }
 
-func NewCleanBuildCacheInteractor(cleanDeps inCleanBuildCacheInteractor) port.CleanBuildCacheUsecase {
-	return &cleanBuildCacheInteractor{
-		repository: cleanDeps.Repository,
-		presenter:  cleanDeps.Presenter,
-	}
+func NewCleanCommandInteractor(i do.Injector) (port.CleanCommandUseCase, error) {
+	return &cleanCommandInteractor{
+		repository: do.MustInvoke[repository.AssetRepository](i),
+		presenter:  do.MustInvoke[presenter.CleanCommandPresenter](i),
+	}, nil
 }
 
-func (u *cleanBuildCacheInteractor) Handle(input *port.CleanBuildCacheUsecaseInputData) {
-	output := &port.CleanBuildCacheUsecaseOutputData{}
+func (u *cleanCommandInteractor) Handle(input *port.CleanCommandUseCaseInputData) {
+	output := &port.CleanCommandUseCaseOutputData{}
 
 	output.Message = "cleaning cache files... "
 	u.presenter.Progress(output)
