@@ -1,6 +1,6 @@
 export default {
   files: ['*'],
   variables: {
-    go_module: 'github.com/c18t/app',
+    go_module: 'github.com/c18t/nippo-cli',
   },
 };
