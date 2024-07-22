@@ -6,8 +6,6 @@ package cmd
 
 import (
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
-	"github.com/c18t/nippo-cli/internal/core"
-	"github.com/c18t/nippo-cli/internal/inject"
 	"github.com/spf13/cobra"
 )
 
@@ -33,12 +31,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// buildCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func createBuildCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.BuildController) error {
-		build = c
-		return nil
-	})
-	return build.Exec
 }

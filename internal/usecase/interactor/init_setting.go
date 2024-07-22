@@ -13,7 +13,7 @@ import (
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
 type initSettingInteractor struct {
@@ -21,22 +21,16 @@ type initSettingInteractor struct {
 	presenter presenter.InitSettingPresenter
 }
 
-type inInitSettingInteractor struct {
-	dig.In
-	Provider gateway.LocalFileProvider
-	Presener presenter.InitSettingPresenter
-}
-
-func NewInitSettingInteractor(initDeps inInitSettingInteractor) port.InitSettingUsecase {
+func NewInitSettingInteractor(i do.Injector) (port.InitSettingUseCase, error) {
 	return &initSettingInteractor{
-		provider:  initDeps.Provider,
-		presenter: initDeps.Presener,
-	}
+		provider:  do.MustInvoke[gateway.LocalFileProvider](i),
+		presenter: do.MustInvoke[presenter.InitSettingPresenter](i),
+	}, nil
 }
 
-func (u *initSettingInteractor) Handle(input *port.InitSettingUsecaseInputData) {
+func (u *initSettingInteractor) Handle(input *port.InitSettingUseCaseInputData) {
 	var err error
-	output := &port.InitSettingUsecaseOutputData{
+	output := &port.InitSettingUseCaseOutputData{
 		Project: port.InitSettingProject{},
 	}
 
@@ -53,7 +47,7 @@ func (u *initSettingInteractor) Handle(input *port.InitSettingUsecaseInputData) 
 	}
 }
 
-func (u *initSettingInteractor) configureProject(input *port.InitSettingUsecaseInputData, output *port.InitSettingUsecaseOutputData) error {
+func (u *initSettingInteractor) configureProject(input *port.InitSettingUseCaseInputData, output *port.InitSettingUseCaseOutputData) error {
 	// プロジェクトURLの入力
 	output.Input = port.InitSettingProjectUrl("")
 	projectUrl := make(chan interface{})

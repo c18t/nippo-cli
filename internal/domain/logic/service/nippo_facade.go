@@ -6,28 +6,21 @@ import (
 	"github.com/c18t/nippo-cli/internal/domain/model"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	i "github.com/c18t/nippo-cli/internal/domain/service"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
 type nippoFacade struct {
-	remoteQuery  repository.RemoteNippoQuery
-	localQuery   repository.LocalNippoQuery
-	localCommand repository.LocalNippoCommand
+	remoteQuery  repository.RemoteNippoQuery  `do:""`
+	localQuery   repository.LocalNippoQuery   `do:""`
+	localCommand repository.LocalNippoCommand `do:""`
 }
 
-type inNippoFacade struct {
-	dig.In
-	RemoteQuery  repository.RemoteNippoQuery
-	LocalQuery   repository.LocalNippoQuery
-	LocalCommand repository.LocalNippoCommand
-}
-
-func NewNippoFacade(serviceDeps inNippoFacade) i.NippoFacade {
+func NewNippoFacade(i do.Injector) (i.NippoFacade, error) {
 	return &nippoFacade{
-		remoteQuery:  serviceDeps.RemoteQuery,
-		localQuery:   serviceDeps.LocalQuery,
-		localCommand: serviceDeps.LocalCommand,
-	}
+		remoteQuery:  do.MustInvoke[repository.RemoteNippoQuery](i),
+		localQuery:   do.MustInvoke[repository.LocalNippoQuery](i),
+		localCommand: do.MustInvoke[repository.LocalNippoCommand](i),
+	}, nil
 }
 
 func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeOption) (*i.NippoFacadeReponse, error) {

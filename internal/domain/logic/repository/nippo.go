@@ -9,19 +9,22 @@ import (
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/model"
 	i "github.com/c18t/nippo-cli/internal/domain/repository"
+	"github.com/samber/do/v2"
 	"google.golang.org/api/drive/v3"
 )
 
 type remoteNippoQuery struct {
-	provider gateway.DriveFileProvider
+	provider gateway.DriveFileProvider `do:""`
 }
 
 type localNippoQuery struct {
-	provider gateway.LocalFileProvider
+	provider gateway.LocalFileProvider `do:""`
 }
 
-func NewRemoteNippoQuery(p gateway.DriveFileProvider) i.RemoteNippoQuery {
-	return &remoteNippoQuery{p}
+func NewRemoteNippoQuery(i do.Injector) (i.RemoteNippoQuery, error) {
+	return &remoteNippoQuery{
+		provider: do.MustInvoke[gateway.DriveFileProvider](i),
+	}, nil
 }
 
 func (r *remoteNippoQuery) List(param *i.QueryListParam, option *i.QueryListOption) ([]model.Nippo, error) {
@@ -86,8 +89,10 @@ func (r *remoteNippoQuery) Download(nippo *model.Nippo) (err error) {
 	return
 }
 
-func NewLocalNippoQuery(p gateway.LocalFileProvider) i.LocalNippoQuery {
-	return &localNippoQuery{p}
+func NewLocalNippoQuery(i do.Injector) (i.LocalNippoQuery, error) {
+	return &localNippoQuery{
+		provider: do.MustInvoke[gateway.LocalFileProvider](i),
+	}, nil
 }
 
 func (r *localNippoQuery) Exist(date *model.NippoDate) bool {
@@ -135,8 +140,10 @@ type localNippoCommand struct {
 	provider gateway.LocalFileProvider
 }
 
-func NewLocalNippoCommand(p gateway.LocalFileProvider) i.LocalNippoCommand {
-	return &localNippoCommand{p}
+func NewLocalNippoCommand(i do.Injector) (i.LocalNippoCommand, error) {
+	return &localNippoCommand{
+		provider: do.MustInvoke[gateway.LocalFileProvider](i),
+	}, nil
 }
 
 func (r *localNippoCommand) Create(nippo *model.Nippo) error {

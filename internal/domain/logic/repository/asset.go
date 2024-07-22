@@ -7,14 +7,17 @@ import (
 	"github.com/c18t/nippo-cli/internal/adapter/gateway"
 	"github.com/c18t/nippo-cli/internal/core"
 	i "github.com/c18t/nippo-cli/internal/domain/repository"
+	"github.com/samber/do/v2"
 )
 
 type assetRepository struct {
-	provider gateway.LocalFileProvider
+	provider gateway.LocalFileProvider `do:""`
 }
 
-func NewAssetRepository(p gateway.LocalFileProvider) i.AssetRepository {
-	return &assetRepository{p}
+func NewAssetRepository(i do.Injector) (i.AssetRepository, error) {
+	return &assetRepository{
+		provider: do.MustInvoke[gateway.LocalFileProvider](i),
+	}, nil
 }
 
 func (r *assetRepository) CleanNippoCache() error {

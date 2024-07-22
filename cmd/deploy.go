@@ -6,12 +6,10 @@ package cmd
 
 import (
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
-	"github.com/c18t/nippo-cli/internal/core"
-	"github.com/c18t/nippo-cli/internal/inject"
 	"github.com/spf13/cobra"
 )
 
-var deploy controller.CleanController
+var deploy controller.DeployController
 
 // deployCmd represents the deploy command
 var deployCmd = &cobra.Command{
@@ -33,12 +31,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// deployCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func createDeployCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.DeployController) error {
-		deploy = c
-		return nil
-	})
-	return deploy.Exec
 }

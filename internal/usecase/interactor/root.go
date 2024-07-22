@@ -5,18 +5,21 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
 )
 
-type rootVersionInteractor struct {
-	presenter presenter.RootVersionPresenter
+type rootCommandInteractor struct {
+	presenter presenter.RootCommandPresenter `do:""`
 }
 
-func NewRootVersionInteractor(presenter presenter.RootVersionPresenter) port.RootVersionUsecase {
-	return &rootVersionInteractor{presenter}
+func NewRootCommandInteractor(i do.Injector) (port.RootCommandUseCase, error) {
+	return &rootCommandInteractor{
+		presenter: do.MustInvoke[presenter.RootCommandPresenter](i),
+	}, nil
 }
 
-func (u *rootVersionInteractor) Handle(input *port.RootVersionUsecaseInputData) {
-	output := &port.RootVersionUsecaseOutpuData{}
+func (u *rootCommandInteractor) Handle(input *port.RootCommandUseCaseInputData) {
+	output := &port.RootCommandUseCaseOutputData{}
 	if input.Version != "" {
 		// go build -ldflags "-X 'main.version=vx.x.x'"
 		output.Message = input.Version

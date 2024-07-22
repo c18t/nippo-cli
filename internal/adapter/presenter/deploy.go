@@ -4,35 +4,34 @@ import (
 	"reflect"
 
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
+	"github.com/spf13/cobra"
 )
 
-type DeployPresenter interface {
-	Progress(output port.DeployUsecaseOutputData)
-	Complete(output port.DeployUsecaseOutputData)
+type DeployCommandPresenter interface {
+	Progress(output *port.DeployCommandUseCaseOutputData)
+	Complete(output *port.DeployCommandUseCaseOutputData)
 	Suspend(err error)
 }
-type DeploySitePresenter interface {
-	DeployPresenter
-}
 
-type deployPresenter struct {
+type deployCommandPresenter struct {
 	base ConsolePresenter
 }
 
-func NewDeploySitePresenter() DeploySitePresenter {
-	return &deployPresenter{&consolePresenter{}}
+func NewDeployCommandPresenter(i do.Injector) (DeployCommandPresenter, error) {
+	return &deployCommandPresenter{&consolePresenter{}}, nil
 }
 
-func (p *deployPresenter) Progress(output port.DeployUsecaseOutputData) {
+func (p *deployCommandPresenter) Progress(output *port.DeployCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
 }
 
-func (p *deployPresenter) Complete(output port.DeployUsecaseOutputData) {
+func (p *deployCommandPresenter) Complete(output *port.DeployCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Complete(v.String())
 }
 
-func (p *deployPresenter) Suspend(err error) {
-	p.base.Suspend(err)
+func (p *deployCommandPresenter) Suspend(err error) {
+	cobra.CheckErr(err)
 }

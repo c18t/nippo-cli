@@ -10,30 +10,23 @@ import (
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
-	"go.uber.org/dig"
+	"github.com/samber/do/v2"
 )
 
-type updateProjectDataInteractor struct {
-	provider  gateway.LocalFileProvider
-	presenter presenter.UpdateProjectDataPresenter
+type updateCommandInteractor struct {
+	provider  gateway.LocalFileProvider        `do:""`
+	presenter presenter.UpdateCommandPresenter `do:""`
 }
 
-type inUpdateProjectDataInteractor struct {
-	dig.In
-	Provider  gateway.LocalFileProvider
-	Presenter presenter.UpdateProjectDataPresenter
+func NewUpdateCommandInteractor(i do.Injector) (port.UpdateCommandUseCase, error) {
+	return &updateCommandInteractor{
+		provider:  do.MustInvoke[gateway.LocalFileProvider](i),
+		presenter: do.MustInvoke[presenter.UpdateCommandPresenter](i),
+	}, nil
 }
 
-func NewUpdateProjectDataInteractor(updateDeps inUpdateProjectDataInteractor) port.UpdateProjectDataUsecase {
-	return &updateProjectDataInteractor{
-		provider:  updateDeps.Provider,
-		presenter: updateDeps.Presenter,
-	}
-}
-
-func (u *updateProjectDataInteractor) Handle(input *port.UpdateProjectDataUsecaseInputData) {
-	output := &port.UpdateProjectDataUsecaseOutputData{}
-
+func (u *updateCommandInteractor) Handle(input *port.UpdateCommandUseCaseInputData) {
+	output := &port.UpdateCommandUseCaseOutputData{}
 	output.Message = "updating project files... "
 	u.presenter.Progress(output)
 
@@ -47,7 +40,7 @@ func (u *updateProjectDataInteractor) Handle(input *port.UpdateProjectDataUsecas
 	u.presenter.Complete(output)
 }
 
-func (u *updateProjectDataInteractor) downloadProject() error {
+func (u *updateCommandInteractor) downloadProject() error {
 	// ダウンロードするURL
 	url := "https://codeload.github.com/c18t/nippo/zip/refs/heads/main"
 
@@ -82,7 +75,7 @@ func (u *updateProjectDataInteractor) downloadProject() error {
 }
 
 // ZIPファイルを展開する関数
-func (u *updateProjectDataInteractor) unzip(zipFile, destDir string) error {
+func (u *updateCommandInteractor) unzip(zipFile, destDir string) error {
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
 		return err

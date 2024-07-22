@@ -12,6 +12,7 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
+	"github.com/samber/do/v2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -41,8 +42,8 @@ type driveFileProvider struct {
 	fs *drive.FilesService
 }
 
-func NewDriveFileProvider() DriveFileProvider {
-	return &driveFileProvider{}
+func NewDriveFileProvider(i do.Injector) (DriveFileProvider, error) {
+	return &driveFileProvider{}, nil
 }
 
 func (g *driveFileProvider) List(param *repository.QueryListParam) (*drive.FileList, error) {

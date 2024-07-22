@@ -10,6 +10,7 @@ import (
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -19,11 +20,13 @@ type initSaveDriveTokenInteractor struct {
 	presenter presenter.InitSaveDriveTokenPresenter
 }
 
-func NewInitSaveDriveTokenInteractor(presenter presenter.InitSaveDriveTokenPresenter) port.InitSaveDriveTokenUsecase {
-	return &initSaveDriveTokenInteractor{presenter}
+func NewInitSaveDriveTokenInteractor(i do.Injector) (port.InitSaveDriveTokenUseCase, error) {
+	return &initSaveDriveTokenInteractor{
+		do.MustInvoke[presenter.InitSaveDriveTokenPresenter](i),
+	}, nil
 }
 
-func (u *initSaveDriveTokenInteractor) Handle(input *port.InitSaveDriveTokenUsecaseInputData) {
+func (u *initSaveDriveTokenInteractor) Handle(input *port.InitSaveDriveTokenUseCaseInputData) {
 	output := &port.InitSaveDriveTokenUsecaseOutputData{}
 
 	dataDir := core.Cfg.GetDataDir()

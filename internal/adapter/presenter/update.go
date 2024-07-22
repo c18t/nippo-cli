@@ -4,35 +4,34 @@ import (
 	"reflect"
 
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
+	"github.com/spf13/cobra"
 )
 
-type UpdatePresenter interface {
-	Progress(output port.UpdateUsecaseOutputData)
-	Complete(output port.UpdateUsecaseOutputData)
+type UpdateCommandPresenter interface {
+	Progress(output *port.UpdateCommandUseCaseOutputData)
+	Complete(output *port.UpdateCommandUseCaseOutputData)
 	Suspend(err error)
 }
-type UpdateProjectDataPresenter interface {
-	UpdatePresenter
-}
 
-type updatePresenter struct {
+type updateCommandPresenter struct {
 	base ConsolePresenter
 }
 
-func NewUpdateProjectDataPresenter() UpdateProjectDataPresenter {
-	return &updatePresenter{&consolePresenter{}}
+func NewUpdateCommandPresenter(i do.Injector) (UpdateCommandPresenter, error) {
+	return &updateCommandPresenter{&consolePresenter{}}, nil
 }
 
-func (p *updatePresenter) Progress(output port.UpdateUsecaseOutputData) {
+func (p *updateCommandPresenter) Progress(output *port.UpdateCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
 }
 
-func (p *updatePresenter) Complete(output port.UpdateUsecaseOutputData) {
+func (p *updateCommandPresenter) Complete(output *port.UpdateCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Complete(v.String())
 }
 
-func (p *updatePresenter) Suspend(err error) {
-	p.base.Suspend(err)
+func (p *updateCommandPresenter) Suspend(err error) {
+	cobra.CheckErr(err)
 }

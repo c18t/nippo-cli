@@ -8,14 +8,15 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/core"
 	i "github.com/c18t/nippo-cli/internal/domain/service"
+	"github.com/samber/do/v2"
 )
 
 type templateService struct {
 	t *template.Template
 }
 
-func NewTemplateService() i.TemplateService {
-	return &templateService{}
+func NewTemplateService(i do.Injector) (i.TemplateService, error) {
+	return &templateService{}, nil
 }
 
 func (s *templateService) SaveTo(filePath string, templateName string, data any) error {

@@ -8,6 +8,6 @@ type Controller interface {
 	Exec(cmd *cobra.Command, args []string) (err error)
 }
 
-type Usecase interface{}
+type UseCase interface{}
 
 type ViewModel interface{}

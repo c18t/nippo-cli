@@ -8,8 +8,6 @@ import (
 	"os"
 
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
-	"github.com/c18t/nippo-cli/internal/core"
-	"github.com/c18t/nippo-cli/internal/inject"
 	"github.com/spf13/cobra"
 )
 
@@ -41,14 +39,6 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolVarP(&root.Params().Version, "version", "V", false, "show nippo-cli version")
 	rootCmd.Flags().BoolVarP(&root.Params().LicenseNotice, "license-notice", "", false, "show copyright notices and license texts of third-party library that nippo-cli depends on")
-}
-
-func createRootCommand() core.RunEFunc {
-	_ = inject.Container.Invoke(func(c controller.RootController) error {
-		root = c
-		return nil
-	})
-	return root.Exec
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

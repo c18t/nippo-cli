@@ -6,34 +6,43 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter/view"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
+	"github.com/samber/do/v2"
+	"github.com/spf13/cobra"
 )
 
-type InitPresenter interface {
-	Progress(output port.InitUsecaseOutputData)
-	Complete(output port.InitUsecaseOutputData)
+type InitCommandPresenter interface {
+	Progress(output port.InitUseCaseOutputData)
+	Complete(output port.InitUseCaseOutputData)
 	Suspend(err error)
 }
 type InitSettingPresenter interface {
-	InitPresenter
-	Prompt(ch chan<- interface{}, output *port.InitSettingUsecaseOutputData)
+	InitCommandPresenter
+	Prompt(ch chan<- interface{}, output *port.InitSettingUseCaseOutputData)
 }
 type InitSaveDriveTokenPresenter interface {
-	InitPresenter
+	InitCommandPresenter
 }
 
-type initPresenter struct {
-	base         ConsolePresenter
-	viewProvider view.InitViewProvider
+type initCommandPresenter struct {
+	base         ConsolePresenter      `do:""`
+	viewProvider view.InitViewProvider `do:""`
 }
 
-func NewInitSettingPresenter(vp view.InitViewProvider) InitSettingPresenter {
-	return &initPresenter{&consolePresenter{}, vp}
-}
-func NewInitSaveDriveTokenPresenter(vp view.InitViewProvider) InitSaveDriveTokenPresenter {
-	return &initPresenter{&consolePresenter{}, vp}
+func NewInitSettingPresenter(i do.Injector) (InitSettingPresenter, error) {
+	return &initCommandPresenter{
+		&consolePresenter{},
+		do.MustInvoke[view.InitViewProvider](i),
+	}, nil
 }
 
-func (p *initPresenter) Prompt(ch chan<- interface{}, output *port.InitSettingUsecaseOutputData) {
+func NewInitSaveDriveTokenPresenter(i do.Injector) (InitSaveDriveTokenPresenter, error) {
+	return &initCommandPresenter{
+		&consolePresenter{},
+		do.MustInvoke[view.InitViewProvider](i),
+	}, nil
+}
+
+func (p *initCommandPresenter) Prompt(ch chan<- interface{}, output *port.InitSettingUseCaseOutputData) {
 	switch output.Input.(type) {
 	case port.InitSettingProjectUrl:
 		vm := &view.ConfigureProjectViewModel{Sequence: view.ConfigureProjectSequence_InputProjectUrl}
@@ -50,20 +59,20 @@ func (p *initPresenter) Prompt(ch chan<- interface{}, output *port.InitSettingUs
 	}
 }
 
-func (p *initPresenter) Progress(output port.InitUsecaseOutputData) {
+func (p *initCommandPresenter) Progress(output port.InitUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	vm := &view.ConfigureProjectViewModel{}
 	vm.Output = fmt.Sprint(v.String())
 	p.viewProvider.Handle(vm)
 }
 
-func (p *initPresenter) Complete(output port.InitUsecaseOutputData) {
+func (p *initCommandPresenter) Complete(output port.InitUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	vm := &view.ConfigureProjectViewModel{}
 	vm.Output = fmt.Sprintln(v.String())
 	p.viewProvider.Handle(vm)
 }
 
-func (p *initPresenter) Suspend(err error) {
-	p.base.Suspend(err)
+func (p *initCommandPresenter) Suspend(err error) {
+	cobra.CheckErr(err)
 }
