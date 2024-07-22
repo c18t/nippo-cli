@@ -42,6 +42,7 @@ RUN <<EOF
 curl https://mise.jdx.dev/install.sh.sig | gpg --decrypt > install.sh
 sh ./install.sh
 : 'mise setup for bash'
+echo 'export PATH=$PATH:~/.local/bin' >> ~/.bashrc
 echo 'eval "$(mise activate bash)"' >> ~/.bashrc
 : 'allow the execution of git commands in a container workspace'
 git config --global safe.directory ${WORKING_DIR}
