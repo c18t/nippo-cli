@@ -32,9 +32,10 @@ nippo deploy
 
 ```console
 // host
-$ (echo UID=$(id -u) & echo GID=$(id -g)) > .env
+$ cp .env.sample .env
+$ (echo UID=$(id -u) & echo GID=$(id -g)) >> .env
 $ docker compose up -d
-$ docker compose exec nippo-cli bash
+$ docker compose exec app bash
 
 // container
 $ mise trust
