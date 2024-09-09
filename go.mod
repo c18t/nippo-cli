@@ -10,7 +10,7 @@ require (
 	github.com/samber/do/v2 v2.0.0-beta.7
 	github.com/spf13/cobra v1.8.1 // direct
 	github.com/spf13/viper v1.19.0 // direct
-	golang.org/x/oauth2 v0.21.0 // direct
+	golang.org/x/oauth2 v0.23.0 // direct
 	google.golang.org/api v0.189.0 // direct
 )
 
