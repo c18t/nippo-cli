@@ -1,6 +1,6 @@
 module github.com/c18t/nippo-cli
 
-go 1.22.5
+go 1.24.0
 
 require (
 	github.com/carlosstrand/go-sitemap v0.0.0-20191230193616-37cd6896357b // direct
@@ -10,7 +10,7 @@ require (
 	github.com/samber/do/v2 v2.0.0-beta.7
 	github.com/spf13/cobra v1.8.1 // direct
 	github.com/spf13/viper v1.19.0 // direct
-	golang.org/x/oauth2 v0.21.0 // direct
+	golang.org/x/oauth2 v0.33.0 // direct
 	google.golang.org/api v0.189.0 // direct
 )
 
