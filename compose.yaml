@@ -7,9 +7,13 @@ services:
         - CONTAINER_USER=${CONTAINER_USER:-user}
         - UID=${UID:-1000}
         - GID=${GID:-1000}
-        - DELVE_VERSION=${DELVE_VERSION:-v1.22.1}
+        - DELVE_VERSION=${DELVE_VERSION:-latest}
+        - GOPLS_VERSION=${GOPLS_VERSION:-latest}
         - DEBUG_PORT=${DEBUG_PORT:-2345}
     stop_signal: SIGKILL
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     ports:
       - ${DEBUG_PORT:-2345}:${DEBUG_PORT:-2345}
     volumes:

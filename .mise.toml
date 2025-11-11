@@ -1,32 +1,62 @@
 [env]
 '_'.file = '.env'
+'_'.path = './node_modules/.bin'
 
 [tools]
-node = "22.5.1"
-goreleaser = "2.1.0"
-pre-commit = "3.7.1"
-shellcheck = "0.10.0"
+node = "25.1.0"
+claude-code = "2.0.36"
+goreleaser = "2.12.7"
+pnpm = "10.21.0"
+pre-commit = "4.4.0"
+shellcheck = "0.11.0"
+"go:github.com/k1LoW/octocov" = "0.73.0"
+"go:github.com/melkeydev/go-blueprint" = "0.10.11"
+"go:github.com/rhysd/actionlint/cmd/actionlint" = "1.7.8"
 "go:github.com/spf13/cobra-cli" = "1.3.0"
-"npm:prettier" = "3.3.3"
-"npm:scaffdog" = "4.0.0"
 
 [tasks.setup]
 description = "Setup (Runs all `setup:*` tasks)"
-depends = ["setup:mise", "setup:go-mod"]
-run = "mise run setup:pre-commit"
+depends = ["setup:mise", "setup:go-mod", "setup:pnpm", "setup:claude-mcp", "setup:pre-commit"]
 
 [tasks."setup:mise"]
 description = "Install dev dependencies with mise"
 run = "mise install -y"
+sources = ['.mise.toml']
 
 [tasks."setup:go-mod"]
 description = "Install go modules with go.mod"
 run = "go mod download"
+sources = ['go.mod']
+outputs = ['go.sum']
+
+[tasks."setup:pnpm"]
+description = "Setup project pnpm"
+depends = ["setup:mise"]
+run = "pnpm install"
+sources = ['package.json', 'pnpm-lock.yaml', '.mise.toml']
+outputs = ['node_modules/.pnpm/lock.yaml']
+
+[tasks."setup:claude-mcp"]
+description = "Set up claude code mcp servers"
+run = "mise run setup:claude-mcp:*"
+env.MISE_JOBS = '1'
+
+[tasks."setup:claude-mcp:container-use"]
+description = "Set up claude code mcp container-use"
+depends = ["setup:mise"]
+run = "claude mcp get container-use || claude mcp add container-use -- container-use stdio"
+
+[tasks."setup:claude-mcp:go"]
+description = "Set up claude code mcp go"
+depends = ["setup:mise"]
+run = "claude mcp get go || claude mcp add go -- npx -y @mizchi/lsmcp -p gopls"
 
 [tasks."setup:pre-commit"]
 description = "Set up pre-commit hooks"
 depends = ["setup:mise"]
 run = "pre-commit install"
+sources = ['.pre-commit-config.yaml']
+outputs = ['.git/hooks/pre-commit']
 
 [tasks.build]
 description = "Build the CLI application"
