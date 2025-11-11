@@ -1,5 +1,5 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
+// README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
   "name": "nippo-cli workspace container (go delve)",
 
@@ -20,23 +20,41 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        // "eamodio.gitlens",
-        // "esbenp.prettier-vscode",
-        // "golang.go"
-        // "me-dutour-mathieu.vscode-github-actions",
-        // "oderwat.indent-rainbow",
-        // "redhat.vscode-yaml",
-        // "shardulm94.trailing-spaces",
-        // "tamasfe.even-better-toml"
-      ]
+        "Anthropic.claude-code",
+        "DavidAnson.vscode-markdownlint",
+        "EditorConfig.EditorConfig",
+        "esbenp.prettier-vscode",
+        "golang.go",
+        "me-dutour-mathieu.vscode-github-actions",
+        "mosapride.zenkaku",
+        "oderwat.indent-rainbow",
+        "redhat.vscode-yaml",
+        "shardulm94.trailing-spaces",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "claudeCode.allowDangerouslySkipPermissions": true,
+        "claudeCode.initialPermissionMode": "bypassPermissions",
+        "claudeCode.useTerminal": true
+      }
     }
-  }
+  },
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 
+  "mounts": [
+    "source=mise-cache-${devcontainerId},target=/mise,type=volume",
+    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=claude-code-config-${devcontainerId},target=/home/user/.claude,type=volume"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/user/.claude"
+  },
+
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "go version",
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && mise trust && mise run setup",
+  "waitFor": "postStartCommand"
 
   // Configure tool-specific properties.
   // "customizations": {},

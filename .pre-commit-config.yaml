@@ -1,10 +1,12 @@
-exclude: ^.scaffdog/.*.md|^.github/pull_request_template.md$
+exclude: ^(.claude/commands/openspec/.*|.github/pull_request_template.md|.scaffdog/.*.md)$
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
+      - id: check-added-large-files
       - id: trailing-whitespace
+      - id: mixed-line-ending
       - id: end-of-file-fixer
 
   - repo: https://github.com/c18t/pre-commit-hooks
@@ -15,19 +17,17 @@ repos:
       - id: yamllint
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.13.0
+    rev: v0.18.1
     hooks:
       - id: markdownlint-cli2
 
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: '3.0.0'
     hooks:
-      - id: check-added-large-files
-      - id: check-toml
-      - id: mixed-line-ending
+      - id: script-must-have-extension
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.57.2
+    rev: v2.6.1
     hooks:
       # - id: golangci-lint-config-verify
       - id: golangci-lint

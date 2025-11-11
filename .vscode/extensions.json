@@ -1,13 +1,18 @@
 {
   "recommendations": [
-    "eamodio.gitlens",
+    "anthropic.claude-code",
+    "davidanson.vscode-markdownlint",
+    "editorconfig.editorconfig",
     "esbenp.prettier-vscode",
     "golang.go",
     "me-dutour-mathieu.vscode-github-actions",
+    "mikestead.dotenv",
+    "mosapride.zenkaku",
     "ms-vscode-remote.remote-containers",
     "oderwat.indent-rainbow",
     "redhat.vscode-yaml",
     "shardulm94.trailing-spaces",
-    "tamasfe.even-better-toml"
+    "tamasfe.even-better-toml",
+    "usernamehw.errorlens"
   ]
 }

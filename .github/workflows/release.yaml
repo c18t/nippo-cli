@@ -7,13 +7,13 @@ on:
 
 jobs:
   tagpr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: run-tagpr
         uses: Songmu/tagpr@v1
         env:
@@ -23,16 +23,16 @@ jobs:
   release:
     needs: tagpr
     if: needs.tagpr.outputs.tagpr-tag != ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-tags: true
       - name: Setup Go environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
       - name: Run GoReleaser
