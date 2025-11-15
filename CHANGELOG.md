@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.14.5](https://github.com/c18t/nippo-cli/compare/v0.14.4...v0.14.5) - 2025-11-15
+- boilerplate-go-cliのアップデートを取り込む by @c18t in https://github.com/c18t/nippo-cli/pull/42
+
 ## [v0.14.4](https://github.com/c18t/nippo-cli/compare/v0.14.3...v0.14.4) - 2024-07-22
 - replace DI package `dig` with `do/v2`  by @c18t in https://github.com/c18t/nippo-cli/pull/19
 
