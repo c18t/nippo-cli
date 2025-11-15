@@ -109,9 +109,10 @@ COPY start.sh post-create.sh init-firewall.sh /usr/local/bin/
 RUN <<EOF
 chmod +x /usr/local/bin/start.sh
 chmod +x /usr/local/bin/post-create.sh
-chmod +x /usr/local/bin/init-firewall.sh \
-  && echo "%${CONTAINER_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/${CONTAINER_USER}-init-firewall \
-  && chmod 0440 /etc/sudoers.d/${CONTAINER_USER}-init-firewall
+# skip firewall initialization
+# chmod +x /usr/local/bin/init-firewall.sh \
+#   && echo "%${CONTAINER_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/${CONTAINER_USER}-init-firewall \
+#   && chmod 0440 /etc/sudoers.d/${CONTAINER_USER}-init-firewall
 EOF
 
 # Switch to container user

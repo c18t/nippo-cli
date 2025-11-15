@@ -21,9 +21,13 @@ type localNippoQuery struct {
 	provider gateway.LocalFileProvider `do:""`
 }
 
-func NewRemoteNippoQuery(i do.Injector) (i.RemoteNippoQuery, error) {
+func NewRemoteNippoQuery(injector do.Injector) (i.RemoteNippoQuery, error) {
+	provider, err := do.Invoke[gateway.DriveFileProvider](injector)
+	if err != nil {
+		return nil, err
+	}
 	return &remoteNippoQuery{
-		provider: do.MustInvoke[gateway.DriveFileProvider](i),
+		provider: provider,
 	}, nil
 }
 
@@ -89,9 +93,13 @@ func (r *remoteNippoQuery) Download(nippo *model.Nippo) (err error) {
 	return
 }
 
-func NewLocalNippoQuery(i do.Injector) (i.LocalNippoQuery, error) {
+func NewLocalNippoQuery(injector do.Injector) (i.LocalNippoQuery, error) {
+	provider, err := do.Invoke[gateway.LocalFileProvider](injector)
+	if err != nil {
+		return nil, err
+	}
 	return &localNippoQuery{
-		provider: do.MustInvoke[gateway.LocalFileProvider](i),
+		provider: provider,
 	}, nil
 }
 
@@ -140,9 +148,13 @@ type localNippoCommand struct {
 	provider gateway.LocalFileProvider
 }
 
-func NewLocalNippoCommand(i do.Injector) (i.LocalNippoCommand, error) {
+func NewLocalNippoCommand(injector do.Injector) (i.LocalNippoCommand, error) {
+	provider, err := do.Invoke[gateway.LocalFileProvider](injector)
+	if err != nil {
+		return nil, err
+	}
 	return &localNippoCommand{
-		provider: do.MustInvoke[gateway.LocalFileProvider](i),
+		provider: provider,
 	}, nil
 }
 

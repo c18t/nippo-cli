@@ -14,9 +14,17 @@ type cleanCommandInteractor struct {
 }
 
 func NewCleanCommandInteractor(i do.Injector) (port.CleanCommandUseCase, error) {
+	repo, err := do.Invoke[repository.AssetRepository](i)
+	if err != nil {
+		return nil, err
+	}
+	p, err := do.Invoke[presenter.CleanCommandPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &cleanCommandInteractor{
-		repository: do.MustInvoke[repository.AssetRepository](i),
-		presenter:  do.MustInvoke[presenter.CleanCommandPresenter](i),
+		repository: repo,
+		presenter:  p,
 	}, nil
 }
 

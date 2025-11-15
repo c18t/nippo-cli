@@ -1,15 +1,29 @@
 package inject
 
 import (
+	"sync"
+
 	"github.com/c18t/nippo-cli/internal/adapter/gateway"
 	"github.com/c18t/nippo-cli/internal/domain/logic/repository"
 	"github.com/c18t/nippo-cli/internal/domain/logic/service"
 	"github.com/samber/do/v2"
 )
 
-var Injector = AddProvider()
+var (
+	injector *do.RootScope
+	once     sync.Once
+)
 
-func AddProvider() *do.RootScope {
+// GetInjector returns the singleton DI container with lazy initialization.
+// It is thread-safe and initializes the container only once.
+func GetInjector() *do.RootScope {
+	once.Do(func() {
+		injector = addProvider()
+	})
+	return injector
+}
+
+func addProvider() *do.RootScope {
 	var i = do.New()
 
 	// adapter/gateway

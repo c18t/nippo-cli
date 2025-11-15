@@ -21,8 +21,12 @@ type initSaveDriveTokenInteractor struct {
 }
 
 func NewInitSaveDriveTokenInteractor(i do.Injector) (port.InitSaveDriveTokenUseCase, error) {
+	p, err := do.Invoke[presenter.InitSaveDriveTokenPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initSaveDriveTokenInteractor{
-		do.MustInvoke[presenter.InitSaveDriveTokenPresenter](i),
+		p,
 	}, nil
 }
 

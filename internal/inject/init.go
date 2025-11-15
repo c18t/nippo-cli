@@ -12,7 +12,7 @@ import (
 var InjectorInit = AddInitProvider()
 
 func AddInitProvider() *do.RootScope {
-	var i = Injector.Clone()
+	var i = GetInjector().Clone()
 
 	// adapter/controller
 	do.Provide(i, controller.NewInitController)

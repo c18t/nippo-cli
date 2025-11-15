@@ -18,8 +18,8 @@
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {},
   "containerEnv": {
-    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": 1,
-    "DISABLE_AUTOUPDATER": 1
+    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
+    "DISABLE_AUTOUPDATER": "1"
   },
   "customizations": {
     "vscode": {
@@ -49,7 +49,8 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && post-create.sh",
+  // "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && post-create.sh",
+  "postCreateCommand": "post-create.sh",
   "waitFor": "postStartCommand"
 
   // Configure tool-specific properties.

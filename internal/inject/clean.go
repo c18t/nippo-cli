@@ -11,17 +11,19 @@ import (
 var InjectorClean = AddCleanProvider()
 
 func AddCleanProvider() *do.RootScope {
+	var i = GetInjector().Clone()
+
 	// adapter/controller
-	do.Provide(Injector, controller.NewCleanController)
+	do.Provide(i, controller.NewCleanController)
 
 	// usecase/port
-	do.Provide(Injector, port.NewCleanUseCaseBus)
+	do.Provide(i, port.NewCleanUseCaseBus)
 
 	// usecase/intractor
-	do.Provide(Injector, interactor.NewCleanCommandInteractor)
+	do.Provide(i, interactor.NewCleanCommandInteractor)
 
 	// adapter/presenter
-	do.Provide(Injector, presenter.NewCleanCommandPresenter)
+	do.Provide(i, presenter.NewCleanCommandPresenter)
 
-	return Injector
+	return i
 }

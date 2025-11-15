@@ -64,9 +64,17 @@ type initUseCaseBus struct {
 }
 
 func NewInitUseCaseBus(i do.Injector) (InitUseCaseBus, error) {
+	configure, err := do.Invoke[InitSettingUseCase](i)
+	if err != nil {
+		return nil, err
+	}
+	saveDriveToken, err := do.Invoke[InitSaveDriveTokenUseCase](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initUseCaseBus{
-		configure:      do.MustInvoke[InitSettingUseCase](i),
-		saveDriveToken: do.MustInvoke[InitSaveDriveTokenUseCase](i),
+		configure:      configure,
+		saveDriveToken: saveDriveToken,
 	}, nil
 }
 

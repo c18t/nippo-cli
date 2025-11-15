@@ -29,13 +29,37 @@ type buildCommandInteractor struct {
 }
 
 func NewBuildCommandInteractor(i do.Injector) (port.BuildCommandUseCase, error) {
+	assetRepository, err := do.Invoke[repository.AssetRepository](i)
+	if err != nil {
+		return nil, err
+	}
+	localNippoQuery, err := do.Invoke[repository.LocalNippoQuery](i)
+	if err != nil {
+		return nil, err
+	}
+	nippoService, err := do.Invoke[service.NippoFacade](i)
+	if err != nil {
+		return nil, err
+	}
+	templateService, err := do.Invoke[service.TemplateService](i)
+	if err != nil {
+		return nil, err
+	}
+	fileProvider, err := do.Invoke[gateway.LocalFileProvider](i)
+	if err != nil {
+		return nil, err
+	}
+	p, err := do.Invoke[presenter.BuildCommandPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &buildCommandInteractor{
-		assetRepository: do.MustInvoke[repository.AssetRepository](i),
-		localNippoQuery: do.MustInvoke[repository.LocalNippoQuery](i),
-		nippoService:    do.MustInvoke[service.NippoFacade](i),
-		templateService: do.MustInvoke[service.TemplateService](i),
-		fileProvider:    do.MustInvoke[gateway.LocalFileProvider](i),
-		presenter:       do.MustInvoke[presenter.BuildCommandPresenter](i),
+		assetRepository: assetRepository,
+		localNippoQuery: localNippoQuery,
+		nippoService:    nippoService,
+		templateService: templateService,
+		fileProvider:    fileProvider,
+		presenter:       p,
 	}, nil
 }
 

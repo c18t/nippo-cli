@@ -21,8 +21,12 @@ type buildController struct {
 }
 
 func NewBuildController(i do.Injector) (BuildController, error) {
+	bus, err := do.Invoke[port.BuildUseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &buildController{
-		bus:    do.MustInvoke[port.BuildUseCaseBus](i),
+		bus:    bus,
 		params: &BuildParams{},
 	}, nil
 }

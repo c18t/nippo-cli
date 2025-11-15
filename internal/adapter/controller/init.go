@@ -21,8 +21,12 @@ type initController struct {
 }
 
 func NewInitController(i do.Injector) (InitController, error) {
+	bus, err := do.Invoke[port.InitUseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initController{
-		bus:    do.MustInvoke[port.InitUseCaseBus](i),
+		bus:    bus,
 		params: &InitParams{},
 	}, nil
 }

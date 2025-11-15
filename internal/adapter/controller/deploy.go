@@ -21,8 +21,12 @@ type deployController struct {
 }
 
 func NewDeployController(i do.Injector) (DeployController, error) {
+	bus, err := do.Invoke[port.DeployUseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &deployController{
-		bus:    do.MustInvoke[port.DeployUseCaseBus](i),
+		bus:    bus,
 		params: &DeployParams{},
 	}, nil
 }

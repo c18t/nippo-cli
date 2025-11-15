@@ -1,37 +1,61 @@
-# Change: Refactor DI implementation with lazy initialization, scope isolation, and proper error handling
+# Change: Refactor DI implementation with lazy initialization, scope isolation, and
+
+proper error handling
 
 ## Why
+
 Issue #37 reports that the DI implementation has multiple significant problems:
 
-1. **Scope Isolation Issue**: `internal/inject/clean.go` directly modifies the base `Injector` instead of cloning it, which pollutes the shared dependency container. Other command injectors (`build`, `deploy`, `init`, `update`, `root`) correctly use `Injector.Clone()` to create isolated scopes.
+1. **Scope Isolation Issue**: `internal/inject/clean.go` directly modifies the
+   base `Injector` instead of cloning it, which pollutes the shared dependency
+   container. Other command injectors (`build`, `deploy`, `init`, `update`,
+   `root`) correctly use `Injector.Clone()` to create isolated scopes.
 
-2. **Eager Initialization Issue**: All injectors use eager initialization (`var Injector = AddProvider()`), creating DI containers at package load time regardless of whether they're needed. This wastes resources and impacts startup performance.
+2. **Eager Initialization Issue**: All injectors use eager initialization
+   (`var Injector = AddProvider()`), creating DI containers at package load
+   time regardless of whether they're needed. This wastes resources and impacts
+   startup performance.
 
-3. **Error Handling Issue**: 39 locations use `do.MustInvoke` which panics on error, despite constructors returning `error`. This violates Go error handling conventions and makes debugging difficult.
+3. **Error Handling Issue**: 39 locations use `do.MustInvoke` which panics on
+   error, despite constructors returning `error`. This violates Go error
+   handling conventions and makes debugging difficult.
 
-4. **Unused Dependencies Issue**: 4 constructors accept `do.Injector` parameter but never use it, violating samber/do conventions and creating confusion about actual dependencies.
+4. **Unused Dependencies Issue**: 4 constructors accept `do.Injector` parameter
+   but never use it, violating samber/do conventions and creating confusion
+   about actual dependencies.
 
-5. **Outdated Dependency Issue**: The project uses `samber/do/v2` beta version (`v2.0.0-beta.7`) instead of the stable release (`v2.0.0` released Sep 21, 2024), missing bug fixes and stability improvements.
+5. **Outdated Dependency Issue**: The project uses `samber/do/v2` beta version
+   (`v2.0.0-beta.7`) instead of the stable release (`v2.0.0` released
+   Sep 21, 2024), missing bug fixes and stability improvements.
 
-These issues violate best practices demonstrated in samber/do-template-cli and the boilerplate-go-cli project (see c18t/boilerplate-go-cli#4).
+These issues violate best practices demonstrated in samber/do-template-cli and
+the boilerplate-go-cli project (see c18t/boilerplate-go-cli#4).
 
 ## What Changes
-- **BREAKING**: Upgrade `github.com/samber/do/v2` from `v2.0.0-beta.7` to `v2.0.0` (stable release)
-- **BREAKING**: Replace `var Injector = AddProvider()` with lazy initialization using `sync.Once` pattern
-- **BREAKING**: Change all references from `inject.Injector` to `inject.GetInjector()`
-- **BREAKING**: Replace all `do.MustInvoke` with `do.Invoke` and proper error handling (39 locations)
+
+- **BREAKING**: Upgrade `github.com/samber/do/v2` from `v2.0.0-beta.7` to
+  `v2.0.0` (stable release)
+- **BREAKING**: Replace `var Injector = AddProvider()` with lazy
+  initialization using `sync.Once` pattern
+- **BREAKING**: Change all references from `inject.Injector` to
+  `inject.GetInjector()`
+- **BREAKING**: Replace all `do.MustInvoke` with `do.Invoke` and proper error
+  handling (39 locations)
 - Fix `internal/inject/clean.go` to use `Injector.Clone()` pattern
-- Update all command-specific injectors to use `GetInjector().Clone()` instead of `Injector.Clone()`
+- Update all command-specific injectors to use `GetInjector().Clone()` instead
+  of `Injector.Clone()`
 - Fix 4 constructors that accept unused `do.Injector` parameters:
   - `internal/adapter/gateway/drive_file_provider.go`
   - `internal/adapter/gateway/local_file_provider.go`
   - `internal/adapter/presenter/view/init.go`
   - `internal/domain/logic/service/template_service.go`
-- Update scaffdog template (`.scaffdog/command.md`) to use proper error handling pattern
+- Update scaffdog template (`.scaffdog/command.md`) to use proper error
+  handling pattern
 - Ensure thread-safe, lazy initialization of DI containers
 - Implement consistent error wrapping with context in all constructors
 
 ## Impact
+
 - Affected specs: `dependency-injection`
 - Affected code:
   - `internal/inject/000_inject.go` (lazy initialization)

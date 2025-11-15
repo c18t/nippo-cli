@@ -30,8 +30,12 @@ type cleanUseCaseBus struct {
 }
 
 func NewCleanUseCaseBus(i do.Injector) (CleanUseCaseBus, error) {
+	command, err := do.Invoke[CleanCommandUseCase](i)
+	if err != nil {
+		return nil, err
+	}
 	return &cleanUseCaseBus{
-		command: do.MustInvoke[CleanCommandUseCase](i),
+		command: command,
 	}, nil
 }
 

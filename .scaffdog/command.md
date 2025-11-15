@@ -30,9 +30,9 @@ import (
 )
 
 func create{{ command_pascal }}Command() core.RunEFunc {
-	cmd, err := do.Invoke[controller.{{ command_pascal }}Controller](inject.Injector{{ command_pascal }})
+	ctrl, err := do.Invoke[controller.{{ command_pascal }}Controller](inject.Injector{{ command_pascal }})
 	cobra.CheckErr(err)
-	return cmd.Exec
+	return ctrl.Exec
 }
 
 ```
@@ -63,8 +63,12 @@ type {{ command_camel }}Controller struct {
 }
 
 func New{{ command_pascal }}Controller(i do.Injector) ({{ command_pascal }}Controller, error) {
+	bus, err := do.Invoke[port.{{ command_pascal }}UseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &{{ command_snake }}Controller{
-		bus:    do.MustInvoke[port.{{ command_pascal }}UseCaseBus](i),
+		bus:    bus,
 		params: &{{ command_pascal }}Params{},
 	}, nil
 }
@@ -122,10 +126,15 @@ type {{ command_camel }}UseCaseBus struct {
 }
 
 func New{{ command_pascal }}UseCaseBus(i do.Injector) ({{ command_pascal }}UseCaseBus, error) {
-	return &{{ command_camel }}UseCaseBus{
+	{{ for subcommand in (subcommand_list | split ',') -}}
+	{{ prefix := command_pascal + (subcommand | trim | pascal) -}}
+	{{ subcommand | trim | camel }}, err := do.Invoke[{{ prefix }}UseCase](i)
+	if err != nil {
+		return nil, err
+	}
+	{{ end }}return &{{ command_camel }}UseCaseBus{
 		{{ for subcommand in (subcommand_list | split ',') -}}
-		{{ prefix := command_pascal + (subcommand | trim | pascal) -}}
-		{{ subcommand | trim | camel }}: do.MustInvoke[{{ prefix }}UseCase](i),
+		{{ subcommand | trim | camel }}: {{ subcommand | trim | camel }},
 		{{ end }}}, nil
 }
 
@@ -161,8 +170,12 @@ type {{ prefix_camel }}Interactor struct {
 }
 
 func New{{ prefix_pascal }}Interactor(i do.Injector) (port.{{ prefix_pascal }}UseCase, error) {
+	p, err := do.Invoke[presenter.{{ prefix_pascal }}Presenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &{{ prefix_camel }}Interactor{
-		presenter: do.MustInvoke[presenter.{{ prefix_pascal }}Presenter](i),
+		presenter: p,
 	}, nil
 }
 
@@ -229,7 +242,7 @@ import (
 var Injector{{ command_pascal }} = Add{{ command_pascal }}Provider()
 
 func Add{{ command_pascal }}Provider() *do.RootScope {
-	var i = Injector.Clone()
+	var i = GetInjector().Clone()
 
 	// adapter/controller
 	do.Provide(i, controller.New{{ command_pascal }}Controller)

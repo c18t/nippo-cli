@@ -15,11 +15,23 @@ type nippoFacade struct {
 	localCommand repository.LocalNippoCommand `do:""`
 }
 
-func NewNippoFacade(i do.Injector) (i.NippoFacade, error) {
+func NewNippoFacade(injector do.Injector) (i.NippoFacade, error) {
+	remoteQuery, err := do.Invoke[repository.RemoteNippoQuery](injector)
+	if err != nil {
+		return nil, err
+	}
+	localQuery, err := do.Invoke[repository.LocalNippoQuery](injector)
+	if err != nil {
+		return nil, err
+	}
+	localCommand, err := do.Invoke[repository.LocalNippoCommand](injector)
+	if err != nil {
+		return nil, err
+	}
 	return &nippoFacade{
-		remoteQuery:  do.MustInvoke[repository.RemoteNippoQuery](i),
-		localQuery:   do.MustInvoke[repository.LocalNippoQuery](i),
-		localCommand: do.MustInvoke[repository.LocalNippoCommand](i),
+		remoteQuery:  remoteQuery,
+		localQuery:   localQuery,
+		localCommand: localCommand,
 	}, nil
 }
 

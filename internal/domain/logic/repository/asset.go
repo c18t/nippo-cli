@@ -14,9 +14,13 @@ type assetRepository struct {
 	provider gateway.LocalFileProvider `do:""`
 }
 
-func NewAssetRepository(i do.Injector) (i.AssetRepository, error) {
+func NewAssetRepository(injector do.Injector) (i.AssetRepository, error) {
+	provider, err := do.Invoke[gateway.LocalFileProvider](injector)
+	if err != nil {
+		return nil, err
+	}
 	return &assetRepository{
-		provider: do.MustInvoke[gateway.LocalFileProvider](i),
+		provider: provider,
 	}, nil
 }
 

@@ -11,7 +11,7 @@ import (
 var InjectorBuild = AddBuildProvider()
 
 func AddBuildProvider() *do.RootScope {
-	var i = Injector.Clone()
+	var i = GetInjector().Clone()
 
 	// adapter/controller
 	do.Provide(i, controller.NewBuildController)

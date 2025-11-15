@@ -30,8 +30,12 @@ type rootController struct {
 }
 
 func NewRootController(i do.Injector) (RootController, error) {
+	bus, err := do.Invoke[port.RootUseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &rootController{
-		bus:    do.MustInvoke[port.RootUseCaseBus](i),
+		bus:    bus,
 		params: &RootParams{},
 	}, nil
 }

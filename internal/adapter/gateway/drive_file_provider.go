@@ -42,7 +42,7 @@ type driveFileProvider struct {
 	fs *drive.FilesService
 }
 
-func NewDriveFileProvider(i do.Injector) (DriveFileProvider, error) {
+func NewDriveFileProvider(_ do.Injector) (DriveFileProvider, error) {
 	return &driveFileProvider{}, nil
 }
 
