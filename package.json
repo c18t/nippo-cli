@@ -1,7 +1,10 @@
 {
   "packageManager": "pnpm@10.21.0",
   "devDependencies": {
+    "@anthropic-ai/claude-code": "^2.0.37",
+    "@devcontainers/cli": "^0.80.1",
     "@fission-ai/openspec": "^0.14.0",
+    "ccmanager": "^2.11.2",
     "markdownlint-cli2": "^0.18.1",
     "pnpm": "^10.21.0",
     "prettier": "^3.6.2",

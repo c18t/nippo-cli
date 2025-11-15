@@ -71,14 +71,18 @@ for domain in \
   "sum.golang.org" \
   "honnef.co" \
   "storage.googleapis.com" \
+  "mise-versions.jdx.dev" \
   "nodejs.org" \
   "registry.npmjs.org" \
+  "pypi.org" \
+  "files.pythonhosted.org" \
   "api.anthropic.com" \
   "sentry.io" \
   "statsig.anthropic.com" \
   "statsig.com" \
   "json.schemastore.org" \
   "goreleaser.com" \
+  "ms-vscode.gallery.vsassets.io" \
   "marketplace.visualstudio.com" \
   "vscode.blob.core.windows.net" \
   "update.code.visualstudio.com" \

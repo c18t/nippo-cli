@@ -268,5 +268,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,windows,macos,dotenv,go,node
 
 ## working dir ##
+.claude/settings.local.json
+.playwright-mcp
 bin/
 dist/

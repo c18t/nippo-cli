@@ -42,6 +42,29 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 This project uses Dev Containers (Codespaces or VS Code). All development tools
 are managed via [mise](https://mise.jdx.dev/).
 
+### Environment Check Before Code Modifications
+
+**Before starting any code changes, verify your development environment and
+adapt your workflow accordingly:**
+
+1. **Check if you're in a DevContainer:**
+
+   ```bash
+   echo $DEVCONTAINER
+   ```
+
+   - If the variable is set (not empty): you're inside a DevContainer
+   - If the variable is unset (empty): you're outside a DevContainer
+
+2. **Choose workflow based on environment:**
+
+   **Inside DevContainer:**
+   - If on `main` branch: Ask the user if they want to create a new branch worktree
+   - If on a non-`main` worktree: Proceed with implementation
+
+   **Outside DevContainer:**
+   - Use the `container-use` workflow described below
+
 ### container-use
 
 ALWAYS use ONLY Environments for ANY and ALL file, code, or shell operations—NO

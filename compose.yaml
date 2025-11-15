@@ -2,23 +2,43 @@ services:
   app:
     build:
       context: ./.devcontainer
-      args: &args
-        - WORKING_DIR=${WORKING_DIR:-/workspaces/app}
-        - CONTAINER_USER=${CONTAINER_USER:-user}
+      args:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
-        - DELVE_VERSION=${DELVE_VERSION:-latest}
-        - GOPLS_VERSION=${GOPLS_VERSION:-latest}
-        - DEBUG_PORT=${DEBUG_PORT:-2345}
     stop_signal: SIGKILL
     cap_add:
       - NET_ADMIN
       - NET_RAW
     ports:
-      - ${DEBUG_PORT:-2345}:${DEBUG_PORT:-2345}
+      - ${DEBUG_PORT:-2345}:2345
     volumes:
       - type: bind
         consistency: deligated
         source: ${PWD:-.}
-        target: ${WORKING_DIR:-/workspaces/app}
-    environment: *args
+        target: /workspaces/app
+      - type: volume
+        source: app-go-cache
+        target: /go/pkg
+      - type: volume
+        source: app-mise-cache
+        target: /mise
+      - type: volume
+        source: app-pnpm-cache
+        target: /home/user/.local/share/pnpm
+      - type: volume
+        source: app-node-modules
+        target: /workspaces/app/node_modules
+      - type: volume
+        source: app-bashhistory
+        target: /commandhistory
+      - type: volume
+        source: app-claude-code-config
+        target: /home/user/.claude
+
+volumes:
+  app-go-cache:
+  app-mise-cache:
+  app-pnpm-cache:
+  app-node-modules:
+  app-bashhistory:
+  app-claude-code-config:

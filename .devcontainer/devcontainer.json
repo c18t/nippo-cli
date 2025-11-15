@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
-  "name": "nippo-cli workspace container (go delve)",
+  "name": "Go CLI workspace container (go delve)",
 
   // Update the 'dockerComposeFile' list if you have more compose files or use different names.
   // The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
@@ -17,20 +17,25 @@
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {},
+  "containerEnv": {
+    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": 1,
+    "DISABLE_AUTOUPDATER": 1
+  },
   "customizations": {
     "vscode": {
       "extensions": [
-        "Anthropic.claude-code",
+        // "Anthropic.claude-code", // 落ちるので一旦外す
         "DavidAnson.vscode-markdownlint",
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
         "golang.go",
+        "hverlin.mise-vscode",
         "me-dutour-mathieu.vscode-github-actions",
         "mosapride.zenkaku",
         "oderwat.indent-rainbow",
         "redhat.vscode-yaml",
-        "shardulm94.trailing-spaces",
-        "tamasfe.even-better-toml"
+        "shardulm94.trailing-spaces"
+        // "tamasfe.even-better-toml", // 落ちるので一旦外す
       ],
       "settings": {
         "claudeCode.allowDangerouslySkipPermissions": true,
@@ -43,17 +48,8 @@
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 
-  "mounts": [
-    "source=mise-cache-${devcontainerId},target=/mise,type=volume",
-    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=claude-code-config-${devcontainerId},target=/home/user/.claude,type=volume"
-  ],
-  "containerEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/user/.claude"
-  },
-
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && mise trust && mise run setup",
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && post-create.sh",
   "waitFor": "postStartCommand"
 
   // Configure tool-specific properties.

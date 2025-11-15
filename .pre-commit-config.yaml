@@ -26,6 +26,11 @@ repos:
     hooks:
       - id: script-must-have-extension
 
+  - repo: https://github.com/hadolint/hadolint
+    rev: 'v2.14.0'
+    hooks:
+      - id: hadolint
+
   - repo: https://github.com/golangci/golangci-lint
     rev: v2.6.1
     hooks:

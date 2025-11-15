@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "container-use": {
+      "type": "stdio",
+      "command": "container-use",
+      "args": ["stdio"],
+      "env": {}
+    },
+    "go": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@mizchi/lsmcp", "-p", "gopls"],
+      "env": {}
+    }
+  }
+}
