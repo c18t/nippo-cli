@@ -1,13 +1,13 @@
 module github.com/c18t/nippo-cli
 
-go 1.22.5
+go 1.25.3
 
 require (
 	github.com/carlosstrand/go-sitemap v0.0.0-20191230193616-37cd6896357b // direct
 	github.com/gomarkdown/markdown v0.0.0-20231115200524-a660076da3fd // direct
 	github.com/gorilla/feeds v1.2.0 // direct
 	github.com/manifoldco/promptui v0.9.0 // direct
-	github.com/samber/do/v2 v2.0.0-beta.7
+	github.com/samber/do/v2 v2.0.0
 	github.com/spf13/cobra v1.8.1 // direct
 	github.com/spf13/viper v1.19.0 // direct
 	golang.org/x/oauth2 v0.21.0 // direct
