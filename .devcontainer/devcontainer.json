@@ -1,36 +1,90 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
-  "name": "nippo-cli workspace container (go delve)",
+  "name": "Go CLI workspace",
 
-  // Update the 'dockerComposeFile' list if you have more compose files or use different names.
-  // The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
-  "dockerComposeFile": ["../compose.yaml"],
+  "build": {
+    "dockerfile": "./Dockerfile"
+  },
+  "capAdd": ["NET_ADMIN", "NET_RAW", "SYS_PTRACE"],
 
-  // The 'service' property is the name of the service for the container that VS Code should
-  // use. Update this value and .devcontainer/docker-compose.yml to the real service name.
-  "service": "app",
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  //"remoteUser": "root",
 
-  // The optional 'workspaceFolder' property is the path VS Code should open by default when
-  // connected. This is typically a file mount in .devcontainer/docker-compose.yml
+  "containerEnv": {
+    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
+    "DISABLE_AUTOUPDATER": "1"
+  },
+
   "workspaceFolder": "/workspaces/app",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=deligated",
+  "mounts": [
+    {
+      "type": "volume",
+      "source": "app-commandhistory-${devcontainerId}",
+      "target": "/commandhistory"
+    },
+    {
+      "type": "volume",
+      "source": "mise-cache",
+      "target": "/mise"
+    },
+    {
+      "type": "volume",
+      "source": "pnpm-cache",
+      "target": "/home/user/.local/share/pnpm"
+    },
+    {
+      "type": "volume",
+      "source": "app-node-modules-${devcontainerId}",
+      "target": "${containerWorkspaceFolder}/node_modules"
+    },
+    {
+      "type": "volume",
+      "source": "app-claude-code-config-${devcontainerId}",
+      "target": "/home/user/.claude"
+    }
+  ],
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [2345],
+  "portsAttributes": {
+    "2345": { "label": "delve DAP debug port" }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && post-create.sh",
+  "postCreateCommand": "post-create.sh",
+  "waitFor": "postStartCommand",
 
   // Features to add to the dev container. More info: https://containers.dev/features.
-  "features": {},
+  // "features": {
+  //   "ghcr.io/devcontainers/features/git:1": {
+  //     "version": "latest",
+  //     "ppa": "false"
+  //   },
+  //   "ghcr.io/devcontainers-extra/features/mise:1": {}
+  // },
+  // "overrideFeatureInstallOrder": [
+  //   "ghcr.io/devcontainers/features/git",
+  //   "ghcr.io/devcontainers-extra/features/mise"
+  // ],
+
+  // Configure tool-specific properties.
   "customizations": {
     "vscode": {
       "extensions": [
-        "Anthropic.claude-code",
+        // "Anthropic.claude-code", // 落ちるので一旦外す
         "DavidAnson.vscode-markdownlint",
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
         "golang.go",
+        "hverlin.mise-vscode",
         "me-dutour-mathieu.vscode-github-actions",
         "mosapride.zenkaku",
         "oderwat.indent-rainbow",
         "redhat.vscode-yaml",
-        "shardulm94.trailing-spaces",
-        "tamasfe.even-better-toml"
+        "shardulm94.trailing-spaces"
+        // "tamasfe.even-better-toml", // 落ちるので一旦外す
       ],
       "settings": {
         "claudeCode.allowDangerouslySkipPermissions": true,
@@ -38,27 +92,5 @@
         "claudeCode.useTerminal": true
       }
     }
-  },
-
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
-  "mounts": [
-    "source=mise-cache-${devcontainerId},target=/mise,type=volume",
-    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=claude-code-config-${devcontainerId},target=/home/user/.claude,type=volume"
-  ],
-  "containerEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/user/.claude"
-  },
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && mise trust && mise run setup",
-  "waitFor": "postStartCommand"
-
-  // Configure tool-specific properties.
-  // "customizations": {},
-
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  }
 }

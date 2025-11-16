@@ -75,15 +75,45 @@ make debug        # Build with debug symbols to /tmp
 **Testing:**
 
 ```bash
-go test ./...           # Run all tests
-go test -v ./path/to/package  # Run specific package tests
+# Run all tests
+go test ./...
+
+# Run specific package tests with verbose output
+go test -v ./path/to/package
+
+# Run tests with coverage
+go test -cover ./...
+
+# Verify build before committing
+mise run build
 ```
 
 **Code Quality:**
 
+**IMPORTANT**: When you modify files, you MUST run the appropriate linters to
+check for errors before committing:
+
+**For Go files** (`**/*.go`):
+
+```bash
+staticcheck ./...
+```
+
+This ensures that Go code follows best practices and maintains consistency
+across the project.
+
+**For Markdown files** (any `.md` file):
+
+```bash
+markdownlint-cli2 "**/*.md"
+```
+
+This validates Markdown formatting and ensures documentation consistency.
+
+**Run all linters:**
+
 ```bash
 pre-commit run --all-files  # Run all linters and formatters
-golangci-lint run           # Run Go linter
 ```
 
 **Release:**
@@ -150,23 +180,33 @@ func init() {
 
 ### Dependency Injection
 
-Each command has its own DI scope (cloned from base):
+Each command has its own package that composes with the base package:
 
 ```go
 // internal/inject/command.go
-var InjectorCommand = AddCommandProvider()
+var CommandPackage = do.Package(
+    do.Lazy(controller.NewCommandController),
+    do.Lazy(port.NewCommandUseCaseBus),
+    do.Lazy(interactor.NewCommandInteractor),
+    do.Lazy(presenter.NewCommandPresenter),
+)
 
-func AddCommandProvider() *do.RootScope {
-    var i = Injector.Clone()  // Clone base injector
-    do.Provide(i, controller.NewCommandController)
-    do.Provide(i, port.NewCommandUseCaseBus)
-    do.Provide(i, interactor.NewCommandInteractor)
-    do.Provide(i, presenter.NewCommandPresenter)
-    return i
-}
+var InjectorCommand = do.New(BasePackage, CommandPackage)
 ```
 
-Base services go in `internal/inject/000_inject.go`.
+Base services go in `internal/inject/container.go` using the `BasePackage`
+pattern. All services use `do.Lazy()` for lazy initialization.
+
+For testing, use `inject.NewTestInjector()` to create test injectors with mock
+services:
+
+```go
+// Test with mocked services
+injector := inject.NewTestInjector(&inject.TestBasePackageOptions{
+    DriveFileProvider: mockDriveProvider,
+    Config: testConfig,
+})
+```
 
 ### Key Patterns
 

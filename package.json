@@ -1,12 +1,16 @@
 {
   "packageManager": "pnpm@10.21.0",
   "devDependencies": {
+    "@anthropic-ai/claude-code": "^2.0.42",
+    "@devcontainers/cli": "^0.80.2",
     "@fission-ai/openspec": "^0.14.0",
+    "ccmanager": "^2.11.4",
     "markdownlint-cli2": "^0.18.1",
-    "pnpm": "^10.21.0",
+    "pnpm": "^10.22.0",
     "prettier": "^3.6.2",
     "prettier-plugin-sh": "^0.18.0",
     "prettier-plugin-toml": "^2.0.6",
-    "pretty-quick": "^4.2.2"
+    "pretty-quick": "^4.2.2",
+    "scaffdog": "^4.1.0"
   }
 }
