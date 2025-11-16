@@ -4,17 +4,26 @@
 
 ## Summary of Completed Work
 
-Implemented DI lifecycle management improvements while maintaining pragmatic configuration pattern:
+Implemented DI lifecycle management improvements while maintaining pragmatic
+configuration pattern:
 
-1. **Configuration Management**: Evaluated DI-injected config but reverted to global `core.Cfg` pattern due to service locator anti-pattern concerns. Config is initialized via `core.InitConfig()` during Cobra startup and accessed directly by all services.
+1. **Configuration Management**: Evaluated DI-injected config but reverted to
+   global `core.Cfg` pattern due to service locator anti-pattern concerns.
+   Config is initialized via `core.InitConfig()` during Cobra startup and
+   accessed directly by all services.
 
-2. **Service Aliasing**: Deferred to future work. All use case interactors already return interface types (`port.*UseCase`), providing interface-based DI foundation.
+2. **Service Aliasing**: Deferred to future work. All use case interactors
+   already return interface types (`port.*UseCase`), providing interface-based
+   DI foundation.
 
-3. **Graceful Shutdown**: Deferred to future work pending Drive API client lifecycle improvements.
+3. **Graceful Shutdown**: Deferred to future work pending Drive API client
+   lifecycle improvements.
 
 4. **Health Checks**: Deferred to future work.
 
-5. **Documentation**: Updated `openspec/project.md`, `proposal.md`, and `spec.md` with rationale for global config pattern and lifecycle management conventions.
+5. **Documentation**: Updated `openspec/project.md`, `proposal.md`, and
+   `spec.md` with rationale for global config pattern and lifecycle management
+   conventions.
 
 6. **Validation**: Build successful, `--help` and `--version` working correctly.
 
