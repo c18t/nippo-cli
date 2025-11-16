@@ -3,10 +3,16 @@
 '_'.path = './node_modules/.bin'
 
 [tools]
+# languages
+go = "1.25.4"
 node = "25"
 python = "3"
+
+# tools
 container-use = "latest"
 gh = "latest"
+golangci-lint = "latest"
+golangci-lint-langserver = "latest"
 goreleaser = "latest"
 jq = "latest"
 pipx = "latest"
@@ -15,14 +21,17 @@ pre-commit = "latest"
 shellcheck = "latest"
 yamllint = "latest"
 "aqua:hadolint" = "latest"
+"go:github.com/go-delve/delve/cmd/dlv" = "latest"
 "go:github.com/k1LoW/octocov" = "latest"
 "go:github.com/melkeydev/go-blueprint" = "latest"
 "go:github.com/rhysd/actionlint/cmd/actionlint" = "latest"
 "go:github.com/spf13/cobra-cli" = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
+"go:honnef.co/go/tools/cmd/staticcheck" = "latest"
 
 [tasks.setup]
 description = "Set up (Runs all `setup:*` tasks)"
-depends = ["setup:mise", "setup:go-mod", "setup:pnpm", "setup:claude-mcp", "setup:pre-commit"]
+depends = ["setup:mise", "setup:go-mod", "setup:pnpm", "setup:claude-mcp", "setup:pre-commit", "setup:ignore-workspace-file-changes"]
 
 [tasks."setup:mise"]
 description = "Install dev dependencies with mise"
@@ -62,6 +71,10 @@ depends = ["setup:mise"]
 run = "pre-commit install"
 sources = ['.pre-commit-config.yaml']
 outputs = ['.git/hooks/pre-commit']
+
+[tasks."setup:ignore-workspace-file-changes"]
+description = "Ignore local changes to workspace file"
+run = "git update-index --assume-unchanged nippo-cli.code-workspace"
 
 [tasks.build]
 description = "Build the CLI application"
