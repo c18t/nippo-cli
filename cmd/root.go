@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/c18t/nippo-cli/internal/adapter/controller"
+	"github.com/c18t/nippo-cli/internal/inject"
 	"github.com/spf13/cobra"
 )
 
@@ -44,6 +45,12 @@ func init() {
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	// Ensure graceful shutdown on exit
+	defer func() {
+		// Ignore shutdown errors since the main operation may have already completed
+		_ = inject.GetInjector().Shutdown()
+	}()
+
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

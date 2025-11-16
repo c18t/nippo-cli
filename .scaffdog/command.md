@@ -239,28 +239,28 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var Injector{{ command_pascal }} = Add{{ command_pascal }}Provider()
-
-func Add{{ command_pascal }}Provider() *do.RootScope {
-	var i = GetInjector().Clone()
-
+// {{ command_pascal }}Package groups all services specific to the {{ command_snake }} command.
+// Services are lazily initialized when first requested.
+var {{ command_pascal }}Package = do.Package(
 	// adapter/controller
-	do.Provide(i, controller.New{{ command_pascal }}Controller)
+	do.Lazy(controller.New{{ command_pascal }}Controller),
 
 	// usecase/port
-	do.Provide(i, port.New{{ command_pascal }}UseCaseBus)
+	do.Lazy(port.New{{ command_pascal }}UseCaseBus),
 
-	// usecase/intractor
+	// usecase/interactor
 	{{ for subcommand in (subcommand_list | split ',') -}}
 	{{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
-	do.Provide(i, interactor.New{{ prefix_pascal }}Interactor)
+	do.Lazy(interactor.New{{ prefix_pascal }}Interactor),
 	{{ end }}
 	// adapter/presenter
 	{{ for subcommand in (subcommand_list | split ',') -}}
 	{{ prefix_pascal := command_pascal + (subcommand | trim | pascal) -}}
-	do.Provide(i, presenter.New{{ prefix_pascal }}Presenter)
+	do.Lazy(presenter.New{{ prefix_pascal }}Presenter),
 	{{ end }}
-	return i
-}
+)
+
+// Injector{{ command_pascal }} provides a DI container with both base and {{ command_snake }}-specific services.
+var Injector{{ command_pascal }} = do.New(BasePackage, {{ command_pascal }}Package)
 
 ```

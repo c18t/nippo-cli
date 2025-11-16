@@ -26,7 +26,7 @@ func NewInitSaveDriveTokenInteractor(i do.Injector) (port.InitSaveDriveTokenUseC
 		return nil, err
 	}
 	return &initSaveDriveTokenInteractor{
-		p,
+		presenter: p,
 	}, nil
 }
 
@@ -40,13 +40,13 @@ func (u *initSaveDriveTokenInteractor) Handle(input *port.InitSaveDriveTokenUseC
 		return
 	}
 
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveReadonlyScope)
+	oauthConfig, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveReadonlyScope)
 	if err != nil {
 		u.presenter.Suspend(fmt.Errorf("unable to parse client secret file to config: %v", err))
 		return
 	}
 
-	tok := getTokenFromWeb(config)
+	tok := getTokenFromWeb(oauthConfig)
 	saveToken(filepath.Join(dataDir, "token.json"), tok)
 
 	u.presenter.Complete(output)
@@ -59,8 +59,8 @@ func saveToken(path string, token *oauth2.Token) {
 	if err != nil {
 		fmt.Printf("Unable to cache oauth token: %v\n", err)
 	}
-	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+	defer func() { _ = f.Close() }()
+	_ = json.NewEncoder(f).Encode(token)
 }
 
 // Request a token from the web, then returns the retrieved token.

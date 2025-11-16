@@ -8,22 +8,21 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var InjectorUpdate = AddUpdateProvider()
-
-func AddUpdateProvider() *do.RootScope {
-	var i = GetInjector().Clone()
-
+// UpdatePackage groups all services specific to the update command.
+// Services are lazily initialized when first requested.
+var UpdatePackage = do.Package(
 	// adapter/controller
-	do.Provide(i, controller.NewUpdateController)
+	do.Lazy(controller.NewUpdateController),
 
 	// usecase/port
-	do.Provide(i, port.NewUpdateUseCaseBus)
+	do.Lazy(port.NewUpdateUseCaseBus),
 
-	// usecase/intractor
-	do.Provide(i, interactor.NewUpdateCommandInteractor)
+	// usecase/interactor
+	do.Lazy(interactor.NewUpdateCommandInteractor),
 
 	// adapter/presenter
-	do.Provide(i, presenter.NewUpdateCommandPresenter)
+	do.Lazy(presenter.NewUpdateCommandPresenter),
+)
 
-	return i
-}
+// InjectorUpdate provides a DI container with both base and update-specific services.
+var InjectorUpdate = do.New(BasePackage, UpdatePackage)

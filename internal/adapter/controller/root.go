@@ -53,8 +53,7 @@ func (c *rootController) Params() *RootParams {
 
 // initConfig reads in config file and ENV variables if set.
 func (c *rootController) InitConfig() {
-	core.Cfg = &core.Config{}
-	err := core.Cfg.LoadConfig(c.params.ConfigFile)
+	err := core.InitConfig(c.params.ConfigFile)
 	cobra.CheckErr(err)
 }
 
@@ -68,7 +67,7 @@ func (c *rootController) Exec(cmd *cobra.Command, args []string) (err error) {
 		err = fmt.Errorf("not implemented")
 	} else {
 		// show help
-		cmd.Help()
+		_ = cmd.Help()
 	}
 	return
 }

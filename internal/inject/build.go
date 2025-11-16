@@ -8,22 +8,21 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var InjectorBuild = AddBuildProvider()
-
-func AddBuildProvider() *do.RootScope {
-	var i = GetInjector().Clone()
-
+// BuildPackage groups all services specific to the build command.
+// Services are lazily initialized when first requested.
+var BuildPackage = do.Package(
 	// adapter/controller
-	do.Provide(i, controller.NewBuildController)
+	do.Lazy(controller.NewBuildController),
 
 	// usecase/port
-	do.Provide(i, port.NewBuildUseCaseBus)
+	do.Lazy(port.NewBuildUseCaseBus),
 
-	// usecase/intractor
-	do.Provide(i, interactor.NewBuildCommandInteractor)
+	// usecase/interactor
+	do.Lazy(interactor.NewBuildCommandInteractor),
 
 	// adapter/presenter
-	do.Provide(i, presenter.NewBuildCommandPresenter)
+	do.Lazy(presenter.NewBuildCommandPresenter),
+)
 
-	return i
-}
+// InjectorBuild provides a DI container with both base and build-specific services.
+var InjectorBuild = do.New(BasePackage, BuildPackage)

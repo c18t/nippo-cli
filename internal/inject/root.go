@@ -8,22 +8,21 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var InjectorRoot = AddRootProvider()
-
-func AddRootProvider() *do.RootScope {
-	var i = GetInjector().Clone()
-
+// RootPackage groups all services specific to the root command.
+// Services are lazily initialized when first requested.
+var RootPackage = do.Package(
 	// adapter/controller
-	do.Provide(i, controller.NewRootController)
+	do.Lazy(controller.NewRootController),
 
 	// usecase/port
-	do.Provide(i, port.NewRootUseCaseBus)
+	do.Lazy(port.NewRootUseCaseBus),
 
-	// usecase/intractor
-	do.Provide(i, interactor.NewRootCommandInteractor)
+	// usecase/interactor
+	do.Lazy(interactor.NewRootCommandInteractor),
 
 	// adapter/presenter
-	do.Provide(i, presenter.NewRootCommandPresenter)
+	do.Lazy(presenter.NewRootCommandPresenter),
+)
 
-	return i
-}
+// InjectorRoot provides a DI container with both base and root-specific services.
+var InjectorRoot = do.New(BasePackage, RootPackage)

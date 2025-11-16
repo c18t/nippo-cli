@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var Cfg *Config
+
 type Config struct {
 	configDir string
 	dataDir   string
@@ -25,10 +27,21 @@ type ConfigProject struct {
 	AssetPath    string `mapstructure:"asset_path"`
 }
 
-var Cfg *Config
+// InitConfig initializes the global configuration
+func InitConfig(configFile string) error {
+	cfg := &Config{}
+	err := cfg.LoadConfig(configFile)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+	Cfg = cfg
+	return nil
+}
 
-var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
-var textMarshalerType = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+var (
+	timeType          = reflect.TypeOf((*time.Time)(nil)).Elem()
+	textMarshalerType = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+)
 
 func (c *Config) GetConfigDir() string {
 	if c.configDir != "" {
@@ -93,7 +106,7 @@ func (c *Config) LoadConfig(filePath string) error {
 	if err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			viper.SafeWriteConfig()
+			_ = viper.SafeWriteConfig()
 		default:
 			return err
 		}
