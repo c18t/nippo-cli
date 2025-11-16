@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Define dependency injection patterns and lifecycle management for the application using samber/do v2, ensuring services are properly initialized, scoped, and cleaned up while maintaining testability and modularity.
+Define dependency injection patterns and lifecycle management for the
+application using samber/do v2, ensuring services are properly initialized,
+scoped, and cleaned up while maintaining testability and modularity.
 
 ## Requirements
 

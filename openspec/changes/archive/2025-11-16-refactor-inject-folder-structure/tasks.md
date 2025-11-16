@@ -6,16 +6,21 @@
 
 All phases successfully implemented:
 
-1. **File Rename**: `000_inject.go` → `container.go` using `git mv` to preserve history
-2. **do.Package Migration**: Refactored to use `BasePackage` with `do.Lazy()` wrappers for lazy initialization
-3. **Documentation Updated**: Updated `openspec/project.md` and `AGENTS.md` to reference new filename and pattern
+1. **File Rename**: `000_inject.go` → `container.go` using `git mv` to
+   preserve history
+2. **do.Package Migration**: Refactored to use `BasePackage` with `do.Lazy()`
+   wrappers for lazy initialization
+3. **Documentation Updated**: Updated `openspec/project.md` and `AGENTS.md` to
+   reference new filename and pattern
 4. **Verification**: Build successful, `--help` and `--version` working correctly
 5. **Godoc Enhanced**: Added comprehensive package and variable documentation
 
 ## 1. Rename File
 
-- [ ] 1.1 Rename `internal/inject/000_inject.go` to `internal/inject/container.go`
-  - [ ] 1.1.1 Use `git mv` to preserve history: `git mv internal/inject/000_inject.go internal/inject/container.go`
+- [ ] 1.1 Rename `internal/inject/000_inject.go` to
+      `internal/inject/container.go`
+  - [ ] 1.1.1 Use `git mv` to preserve history: `git mv
+    internal/inject/000_inject.go internal/inject/container.go`
   - [ ] 1.1.2 Verify file contents remain unchanged (defer refactoring to step 2)
 
 ## 2. Migrate to do.Package Pattern
@@ -73,7 +78,8 @@ All phases successfully implemented:
   - [ ] 4.3.4 Remove temporary logging
 
 - [ ] 4.4 Verify git history preservation
-  - [ ] 4.4.1 Run `git log --follow internal/inject/container.go` to confirm history is intact
+  - [ ] 4.4.1 Run `git log --follow internal/inject/container.go` to confirm
+        history is intact
   - [ ] 4.4.2 Verify the rename is properly tracked
 
 ## 5. Optional: Add Godoc Comments

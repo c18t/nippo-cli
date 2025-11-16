@@ -2,17 +2,29 @@
 
 ## Why
 
-The current `internal/inject/` folder structure uses `000_inject.go` to define the base injector that provides shared services. The `000_` prefix was added to avoid naming conflicts with command-specific injector files (e.g., `build.go`, `clean.go`), but this approach has several issues:
+The current `internal/inject/` folder structure uses `000_inject.go` to define
+the base injector that provides shared services. The `000_` prefix was added to
+avoid naming conflicts with command-specific injector files (e.g., `build.go`,
+`clean.go`), but this approach has several issues:
 
-1. **Unclear naming convention**: The `000_` prefix is non-standard and doesn't clearly communicate the file's purpose. New developers might not understand why this prefix exists.
+1. **Unclear naming convention**: The `000_` prefix is non-standard and doesn't
+   clearly communicate the file's purpose. New developers might not understand
+   why this prefix exists.
 
-2. **File sorting dependence**: The naming relies on alphabetical sorting to ensure the base injector is visually first in the directory listing, which is a fragile convention.
+2. **File sorting dependence**: The naming relies on alphabetical sorting to
+   ensure the base injector is visually first in the directory listing, which
+   is a fragile convention.
 
-3. **Poor discoverability**: The file name doesn't indicate that it contains the singleton base injector factory, making it harder to navigate the codebase.
+3. **Poor discoverability**: The file name doesn't indicate that it contains
+   the singleton base injector factory, making it harder to navigate the
+   codebase.
 
-4. **Not following Go conventions**: Go packages typically use descriptive names rather than numeric prefixes.
+4. **Not following Go conventions**: Go packages typically use descriptive
+   names rather than numeric prefixes.
 
-After reviewing the [samber/do-template-cli](https://github.com/samber/do-template-cli) implementation, they use a clearer pattern:
+After reviewing the
+[samber/do-template-cli](https://github.com/samber/do-template-cli)
+implementation, they use a clearer pattern:
 
 - **`pkg/base.go`**: Contains the base package provider with shared services
 - **`pkg/jobs/package.go`**: Contains job-specific providers
@@ -26,7 +38,7 @@ Refactor the `internal/inject/` folder with two improvements:
 
 ### 1. Rename `000_inject.go` → `container.go`
 
-```
+```text
 internal/inject/
 ├── container.go          # Base injector with shared services
 ├── build.go             # Build command injector
@@ -39,7 +51,8 @@ internal/inject/
 
 **Naming rationale**:
 
-- **Clear intent**: The name "container" explicitly indicates it contains the DI container factory
+- **Clear intent**: The name "container" explicitly indicates it contains the
+  DI container factory
 - **No conflicts**: Commands don't use "container" as a name
 - **Discoverable**: Easy to find when looking for DI container setup
 - **Standard Go naming**: Uses descriptive nouns without numeric prefixes
