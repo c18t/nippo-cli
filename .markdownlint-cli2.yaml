@@ -7,7 +7,6 @@ ignores:
   - '.scaffdog/*.md'
   - 'dist/**'
   - 'node_modules/**'
-  - 'CHANGELOG.md'
 
 config:
   default: true

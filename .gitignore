@@ -269,6 +269,6 @@ $RECYCLE.BIN/
 
 ## working dir ##
 .claude/settings.local.json
-.playwright-mcp
+.playwright-mcp/
 bin/
 dist/
