@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.15.1](https://github.com/c18t/nippo-cli/compare/v0.15.0...v0.15.1) - 2025-11-16
+- Fix goreleaser config and markdownlint errors by @c18t in https://github.com/c18t/nippo-cli/pull/55
+
 ## [v0.14.5](https://github.com/c18t/nippo-cli/compare/v0.14.4...v0.14.5) - 2025-11-16
 - boilerplate-go-cliのアップデートを取り込む by @c18t in https://github.com/c18t/nippo-cli/pull/42
 - chore(devenv): update development environment from boilerplate-go-cli by @c18t in https://github.com/c18t/nippo-cli/pull/52
