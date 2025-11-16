@@ -9,28 +9,27 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var InjectorInit = AddInitProvider()
-
-func AddInitProvider() *do.RootScope {
-	var i = Injector.Clone()
-
+// InitPackage groups all services specific to the init command.
+// Services are lazily initialized when first requested.
+var InitPackage = do.Package(
 	// adapter/controller
-	do.Provide(i, controller.NewInitController)
+	do.Lazy(controller.NewInitController),
 
 	// usecase/port
-	do.Provide(i, port.NewInitUseCaseBus)
+	do.Lazy(port.NewInitUseCaseBus),
 
-	// usecase/intractor
-	do.Provide(i, interactor.NewInitSettingInteractor)
-	do.Provide(i, interactor.NewInitSaveDriveTokenInteractor)
+	// usecase/interactor
+	do.Lazy(interactor.NewInitSettingInteractor),
+	do.Lazy(interactor.NewInitSaveDriveTokenInteractor),
 
 	// adapter/presenter
-	do.Provide(i, presenter.NewInitSettingPresenter)
-	do.Provide(i, presenter.NewInitSaveDriveTokenPresenter)
+	do.Lazy(presenter.NewInitSettingPresenter),
+	do.Lazy(presenter.NewInitSaveDriveTokenPresenter),
 
 	// adapter/presenter/view
-	do.Provide(i, view.NewInitViewProvider)
-	do.Provide(i, view.NewConfigureProjectView)
+	do.Lazy(view.NewInitViewProvider),
+	do.Lazy(view.NewConfigureProjectView),
+)
 
-	return i
-}
+// InjectorInit provides a DI container with both base and init-specific services.
+var InjectorInit = do.New(BasePackage, InitPackage)

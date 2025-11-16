@@ -20,7 +20,7 @@ type LocalFileProvider interface {
 type localFileProvider struct {
 }
 
-func NewLocalFileProvider(i do.Injector) (LocalFileProvider, error) {
+func NewLocalFileProvider(_ do.Injector) (LocalFileProvider, error) {
 	return &localFileProvider{}, nil
 }
 

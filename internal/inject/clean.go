@@ -8,20 +8,21 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var InjectorClean = AddCleanProvider()
-
-func AddCleanProvider() *do.RootScope {
+// CleanPackage groups all services specific to the clean command.
+// Services are lazily initialized when first requested.
+var CleanPackage = do.Package(
 	// adapter/controller
-	do.Provide(Injector, controller.NewCleanController)
+	do.Lazy(controller.NewCleanController),
 
 	// usecase/port
-	do.Provide(Injector, port.NewCleanUseCaseBus)
+	do.Lazy(port.NewCleanUseCaseBus),
 
-	// usecase/intractor
-	do.Provide(Injector, interactor.NewCleanCommandInteractor)
+	// usecase/interactor
+	do.Lazy(interactor.NewCleanCommandInteractor),
 
 	// adapter/presenter
-	do.Provide(Injector, presenter.NewCleanCommandPresenter)
+	do.Lazy(presenter.NewCleanCommandPresenter),
+)
 
-	return Injector
-}
+// InjectorClean provides a DI container with both base and clean-specific services.
+var InjectorClean = do.New(BasePackage, CleanPackage)

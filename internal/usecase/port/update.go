@@ -30,8 +30,12 @@ type updateUseCaseBus struct {
 }
 
 func NewUpdateUseCaseBus(i do.Injector) (UpdateUseCaseBus, error) {
+	command, err := do.Invoke[UpdateCommandUseCase](i)
+	if err != nil {
+		return nil, err
+	}
 	return &updateUseCaseBus{
-		command: do.MustInvoke[UpdateCommandUseCase](i),
+		command: command,
 	}, nil
 }
 

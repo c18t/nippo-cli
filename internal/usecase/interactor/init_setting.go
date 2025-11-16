@@ -22,9 +22,17 @@ type initSettingInteractor struct {
 }
 
 func NewInitSettingInteractor(i do.Injector) (port.InitSettingUseCase, error) {
+	provider, err := do.Invoke[gateway.LocalFileProvider](i)
+	if err != nil {
+		return nil, err
+	}
+	p, err := do.Invoke[presenter.InitSettingPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initSettingInteractor{
-		provider:  do.MustInvoke[gateway.LocalFileProvider](i),
-		presenter: do.MustInvoke[presenter.InitSettingPresenter](i),
+		provider:  provider,
+		presenter: p,
 	}, nil
 }
 

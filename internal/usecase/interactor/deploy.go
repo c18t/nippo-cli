@@ -19,9 +19,17 @@ type deployCommandInteractor struct {
 }
 
 func NewDeployCommandInteractor(i do.Injector) (port.DeployCommandUseCase, error) {
+	provider, err := do.Invoke[gateway.LocalFileProvider](i)
+	if err != nil {
+		return nil, err
+	}
+	p, err := do.Invoke[presenter.DeployCommandPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &deployCommandInteractor{
-		provider:  do.MustInvoke[gateway.LocalFileProvider](i),
-		presenter: do.MustInvoke[presenter.DeployCommandPresenter](i),
+		provider:  provider,
+		presenter: p,
 	}, nil
 }
 

@@ -36,13 +36,15 @@ func (t DriveFileTimestamp) String() string {
 type DriveFileProvider interface {
 	List(param *repository.QueryListParam) (*drive.FileList, error)
 	Download(string) ([]byte, error)
+	Shutdown() error
+	HealthCheck() error
 }
 
 type driveFileProvider struct {
 	fs *drive.FilesService
 }
 
-func NewDriveFileProvider(i do.Injector) (DriveFileProvider, error) {
+func NewDriveFileProvider(_ do.Injector) (DriveFileProvider, error) {
 	return &driveFileProvider{}, nil
 }
 
@@ -80,7 +82,7 @@ func (g *driveFileProvider) Download(id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { io.Copy(io.Discard, res.Body); res.Body.Close() }()
+	defer func() { _, _ = io.Copy(io.Discard, res.Body); _ = res.Body.Close() }()
 	content, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
@@ -99,7 +101,7 @@ func (g *driveFileProvider) getFileService() (*drive.FilesService, error) {
 		return nil, err
 	}
 
-	b, err := os.ReadFile(filepath.Join(core.Cfg.GetDataDir(), "credentials.json"))
+	b, err := os.ReadFile(filepath.Join(dataDir, "credentials.json"))
 	if err != nil {
 		return nil, fmt.Errorf("unable to read client secret file: %v", err)
 	}
@@ -116,7 +118,29 @@ func (g *driveFileProvider) getFileService() (*drive.FilesService, error) {
 		return nil, fmt.Errorf("unable to retrieve Drive client: %v", err)
 	}
 
-	return srv.Files, nil
+	// Store the FilesService
+	g.fs = srv.Files
+	return g.fs, nil
+}
+
+// Shutdown implements graceful shutdown for Drive API client
+func (g *driveFileProvider) Shutdown() error {
+	// Google Drive API client doesn't require explicit cleanup
+	// Setting fs to nil to allow garbage collection
+	g.fs = nil
+	return nil
+}
+
+// HealthCheck verifies Drive API client can be initialized
+func (g *driveFileProvider) HealthCheck() error {
+	// Verify that the client can be initialized successfully
+	// This checks credentials and configuration without making an API call
+	_, err := g.getFileService()
+	if err != nil {
+		return fmt.Errorf("drive client health check failed: %w", err)
+	}
+
+	return nil
 }
 
 // Retrieves a token from a local file.
@@ -125,7 +149,7 @@ func (g *driveFileProvider) tokenFromFile(file string) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	tok := &oauth2.Token{}
 	err = json.NewDecoder(f).Decode(tok)
 	return tok, err

@@ -31,8 +31,12 @@ type rootUseCaseBus struct {
 }
 
 func NewRootUseCaseBus(i do.Injector) (RootUseCaseBus, error) {
+	command, err := do.Invoke[RootCommandUseCase](i)
+	if err != nil {
+		return nil, err
+	}
 	return &rootUseCaseBus{
-		command: do.MustInvoke[RootCommandUseCase](i),
+		command: command,
 	}, nil
 }
 

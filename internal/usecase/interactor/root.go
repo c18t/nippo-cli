@@ -13,8 +13,12 @@ type rootCommandInteractor struct {
 }
 
 func NewRootCommandInteractor(i do.Injector) (port.RootCommandUseCase, error) {
+	p, err := do.Invoke[presenter.RootCommandPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &rootCommandInteractor{
-		presenter: do.MustInvoke[presenter.RootCommandPresenter](i),
+		presenter: p,
 	}, nil
 }
 

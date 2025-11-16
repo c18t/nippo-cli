@@ -21,8 +21,12 @@ type updateController struct {
 }
 
 func NewUpdateController(i do.Injector) (UpdateController, error) {
+	bus, err := do.Invoke[port.UpdateUseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &updateController{
-		bus:    do.MustInvoke[port.UpdateUseCaseBus](i),
+		bus:    bus,
 		params: &UpdateParams{},
 	}, nil
 }

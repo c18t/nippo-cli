@@ -29,16 +29,24 @@ type initCommandPresenter struct {
 }
 
 func NewInitSettingPresenter(i do.Injector) (InitSettingPresenter, error) {
+	viewProvider, err := do.Invoke[view.InitViewProvider](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initCommandPresenter{
 		&consolePresenter{},
-		do.MustInvoke[view.InitViewProvider](i),
+		viewProvider,
 	}, nil
 }
 
 func NewInitSaveDriveTokenPresenter(i do.Injector) (InitSaveDriveTokenPresenter, error) {
+	viewProvider, err := do.Invoke[view.InitViewProvider](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initCommandPresenter{
 		&consolePresenter{},
-		do.MustInvoke[view.InitViewProvider](i),
+		viewProvider,
 	}, nil
 }
 

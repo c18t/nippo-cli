@@ -16,8 +16,12 @@ type initViewProvider struct {
 }
 
 func NewInitViewProvider(i do.Injector) (InitViewProvider, error) {
+	configureProjectView, err := do.Invoke[ConfigureProjectView](i)
+	if err != nil {
+		return nil, err
+	}
 	return &initViewProvider{
-		configureProjectView: do.MustInvoke[ConfigureProjectView](i),
+		configureProjectView: configureProjectView,
 	}, nil
 }
 
@@ -49,7 +53,7 @@ type ConfigureProjectView interface {
 }
 type configureProjectView struct{}
 
-func NewConfigureProjectView(i do.Injector) (ConfigureProjectView, error) {
+func NewConfigureProjectView(_ do.Injector) (ConfigureProjectView, error) {
 	return &configureProjectView{}, nil
 }
 

@@ -8,22 +8,21 @@ import (
 	"github.com/samber/do/v2"
 )
 
-var InjectorDeploy = AddDeployProvider()
-
-func AddDeployProvider() *do.RootScope {
-	var i = Injector.Clone()
-
+// DeployPackage groups all services specific to the deploy command.
+// Services are lazily initialized when first requested.
+var DeployPackage = do.Package(
 	// adapter/controller
-	do.Provide(i, controller.NewDeployController)
+	do.Lazy(controller.NewDeployController),
 
 	// usecase/port
-	do.Provide(i, port.NewDeployUseCaseBus)
+	do.Lazy(port.NewDeployUseCaseBus),
 
-	// usecase/intractor
-	do.Provide(i, interactor.NewDeployCommandInteractor)
+	// usecase/interactor
+	do.Lazy(interactor.NewDeployCommandInteractor),
 
 	// adapter/presenter
-	do.Provide(i, presenter.NewDeployCommandPresenter)
+	do.Lazy(presenter.NewDeployCommandPresenter),
+)
 
-	return i
-}
+// InjectorDeploy provides a DI container with both base and deploy-specific services.
+var InjectorDeploy = do.New(BasePackage, DeployPackage)

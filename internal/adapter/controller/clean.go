@@ -21,8 +21,12 @@ type cleanController struct {
 }
 
 func NewCleanController(i do.Injector) (CleanController, error) {
+	bus, err := do.Invoke[port.CleanUseCaseBus](i)
+	if err != nil {
+		return nil, err
+	}
 	return &cleanController{
-		bus:    do.MustInvoke[port.CleanUseCaseBus](i),
+		bus:    bus,
 		params: &CleanParams{},
 	}, nil
 }

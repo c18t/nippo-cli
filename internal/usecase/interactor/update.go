@@ -19,9 +19,17 @@ type updateCommandInteractor struct {
 }
 
 func NewUpdateCommandInteractor(i do.Injector) (port.UpdateCommandUseCase, error) {
+	provider, err := do.Invoke[gateway.LocalFileProvider](i)
+	if err != nil {
+		return nil, err
+	}
+	p, err := do.Invoke[presenter.UpdateCommandPresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	return &updateCommandInteractor{
-		provider:  do.MustInvoke[gateway.LocalFileProvider](i),
-		presenter: do.MustInvoke[presenter.UpdateCommandPresenter](i),
+		provider:  provider,
+		presenter: p,
 	}, nil
 }
 

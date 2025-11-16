@@ -15,7 +15,7 @@ type templateService struct {
 	t *template.Template
 }
 
-func NewTemplateService(i do.Injector) (i.TemplateService, error) {
+func NewTemplateService(_ do.Injector) (i.TemplateService, error) {
 	return &templateService{}, nil
 }
 
