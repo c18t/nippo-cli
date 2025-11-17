@@ -24,6 +24,7 @@ EXPOSE ${DEBUG_PORT_INTERNAL}
 
 # Mountpoint for cache
 ENV COMMANDHISTORY="/commandhistory"
+ENV GOPATH="/go"
 ENV MISEPATH="/mise"
 ENV PNPM_HOME="/home/${CONTAINER_USER}/.local/share/pnpm"
 ENV NODE_MODULES="${WORKING_DIR}/node_modules"
@@ -81,8 +82,9 @@ useradd -m -s /bin/bash -u \${UID} -g \${GID} -o \${CONTAINER_USER}
 echo "\${CONTAINER_USER} ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/\${CONTAINER_USER}
 chmod 0440 /etc/sudoers.d/\${CONTAINER_USER}
 
-# Create workspace, mise data, and configuration directories
+# Create workspace and configuration directories
 mkdir -p \
+  \${GOPATH} \
   \${MISEPATH} \
   \${XDG_LOCAL} \
   \${PNPM_HOME} \
@@ -93,6 +95,7 @@ mkdir -p \
 
 # Grant ownership of all configuration directories to the container user
 chown -R \${CONTAINER_USER} \
+  \${GOPATH} \
   \${MISEPATH} \
   \${XDG_LOCAL} \
   \${PNPM_HOME} \
@@ -128,11 +131,17 @@ COPY --chown=${UID}:${GID} .cobra.yaml /home/${CONTAINER_USER}/.cobra.yaml
 # Project-specific timezone (can be overridden per project)
 ENV TZ="${TZ}"
 
+# go settings
+# use GNU ld instead of Gold
+# cf. https://moznion.hatenadiary.com/entry/2025/02/19/112622
+ENV CGO_LDFLAGS="-fuse-ld=bfd"
+
 # Define Mountpoint
 # - COMMANDHISTORY: Persistent bash history across container restarts
+# - GOPATH: go cache
 # - MISEPATH: mise configuration, cache, and shims
 # - PNPM_HOME: pnpm global store for faster package installation
 # - WORKING_DIR: Project source code
 # - node_modules: Node.js dependencies (improves performance on bind mounts)
 # - CLAUDE_CODE_CONFIG: Claude Code settings and state
-VOLUME [ "${COMMANDHISTORY}", "${MISEPATH}", "${PNPM_HOME}", "${WORKING_DIR}", "${WORKING_DIR}/node_modules", "${CLAUDE_CODE_CONFIG}" ]
+VOLUME [ "${COMMANDHISTORY}", "${GOPATH}", "${MISEPATH}", "${PNPM_HOME}", "${WORKING_DIR}", "${WORKING_DIR}/node_modules", "${CLAUDE_CODE_CONFIG}" ]

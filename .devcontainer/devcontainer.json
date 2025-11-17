@@ -26,6 +26,11 @@
     },
     {
       "type": "volume",
+      "source": "go-cache",
+      "target": "/go"
+    },
+    {
+      "type": "volume",
       "source": "mise-cache",
       "target": "/mise"
     },
