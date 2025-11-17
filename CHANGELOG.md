@@ -1,20 +1,25 @@
 # Changelog
 
 ## [v0.15.2](https://github.com/c18t/nippo-cli/compare/v0.15.1...v0.15.2) - 2025-11-17
+
 - fix(release): resolve GoReleaser configuration issues by @c18t in https://github.com/c18t/nippo-cli/pull/57
 
 ## [v0.15.1](https://github.com/c18t/nippo-cli/compare/v0.15.0...v0.15.1) - 2025-11-16
+
 - Fix goreleaser config and markdownlint errors by @c18t in https://github.com/c18t/nippo-cli/pull/55
 
-## [v0.14.5](https://github.com/c18t/nippo-cli/compare/v0.14.4...v0.14.5) - 2025-11-16
+## [v0.15.0](https://github.com/c18t/nippo-cli/compare/v0.14.4...v0.15.0) - 2025-11-16
+
 - boilerplate-go-cliのアップデートを取り込む by @c18t in https://github.com/c18t/nippo-cli/pull/42
 - chore(devenv): update development environment from boilerplate-go-cli by @c18t in https://github.com/c18t/nippo-cli/pull/52
 - Refactor DI implementation with package pattern and lifecycle management by @c18t in https://github.com/c18t/nippo-cli/pull/53
 
 ## [v0.14.4](https://github.com/c18t/nippo-cli/compare/v0.14.3...v0.14.4) - 2024-07-22
-- replace DI package `dig` with `do/v2`  by @c18t in https://github.com/c18t/nippo-cli/pull/19
+
+- replace DI package `dig` with `do/v2` by @c18t in https://github.com/c18t/nippo-cli/pull/19
 
 ## [v0.14.3](https://github.com/c18t/nippo-cli/compare/v0.14.2...v0.14.3) - 2024-07-22
+
 - add dependabot settings by @c18t in https://github.com/c18t/nippo-cli/pull/10
 - Bump github.com/spf13/cobra from 1.8.0 to 1.8.1 by @dependabot in https://github.com/c18t/nippo-cli/pull/13
 - Bump github.com/gorilla/feeds from 1.1.2 to 1.2.0 by @dependabot in https://github.com/c18t/nippo-cli/pull/12
@@ -22,9 +27,11 @@
 - Bump github.com/spf13/viper from 1.18.1 to 1.19.0 by @dependabot in https://github.com/c18t/nippo-cli/pull/16
 
 ## [v0.14.3](https://github.com/c18t/nippo-cli/compare/v0.14.2...v0.14.3) - 2024-07-22
+
 - add dependabot settings by @c18t in https://github.com/c18t/nippo-cli/pull/10
 
 ## [v0.14.2](https://github.com/c18t/nippo-cli/compare/v0.14.1...v0.14.2) - 2024-07-22
+
 - align devcontainer.json and compose.yaml configurations by @c18t in https://github.com/c18t/nippo-cli/pull/6
 
 ## [v0.14.1](https://github.com/c18t/nippo-cli/compare/v0.14.0...v0.14.1) - 2024-07-22
