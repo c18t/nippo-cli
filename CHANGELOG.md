@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.15.2](https://github.com/c18t/nippo-cli/compare/v0.15.1...v0.15.2) - 2025-11-17
+- fix(release): resolve GoReleaser configuration issues by @c18t in https://github.com/c18t/nippo-cli/pull/57
+
 ## [v0.15.1](https://github.com/c18t/nippo-cli/compare/v0.15.0...v0.15.1) - 2025-11-16
 - Fix goreleaser config and markdownlint errors by @c18t in https://github.com/c18t/nippo-cli/pull/55
 
