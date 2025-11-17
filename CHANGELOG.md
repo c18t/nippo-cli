@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.15.3](https://github.com/c18t/nippo-cli/compare/v0.15.2...v0.15.3) - 2025-11-17
+- chore: update devcontainer and dependencies by @c18t in https://github.com/c18t/nippo-cli/pull/59
+
 ## [v0.15.2](https://github.com/c18t/nippo-cli/compare/v0.15.1...v0.15.2) - 2025-11-17
 
 - fix(release): resolve GoReleaser configuration issues by @c18t in https://github.com/c18t/nippo-cli/pull/57
