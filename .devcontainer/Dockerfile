@@ -131,6 +131,11 @@ COPY --chown=${UID}:${GID} .cobra.yaml /home/${CONTAINER_USER}/.cobra.yaml
 # Project-specific timezone (can be overridden per project)
 ENV TZ="${TZ}"
 
+# go settings
+# use GNU ld instead of Gold
+# cf. https://moznion.hatenadiary.com/entry/2025/02/19/112622
+ENV CGO_LDFLAGS="-fuse-ld=bfd"
+
 # Define Mountpoint
 # - COMMANDHISTORY: Persistent bash history across container restarts
 # - GOPATH: go cache

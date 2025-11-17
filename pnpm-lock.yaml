@@ -989,10 +989,10 @@ packages:
         integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==,
       }
 
-  effect@3.19.3:
+  effect@3.19.4:
     resolution:
       {
-        integrity: sha512-LodiPXiyUJWQ5LoMhUGbu0acD2ff5A5teJtUlLKDPVfoeWEBcZLlzK8BeVXpVa0f30UsdHouVCf0C/E0TxYMrA==,
+        integrity: sha512-gApFffMwpDVgmw/FzCaYWt6zw4m0xAnQf5+cPS0+Sl85AxfeovJeEIsiEQVlk+ZvtBYcoPXxi65GIyruzanQ5g==,
       }
 
   emoji-regex@10.6.0:
@@ -3240,7 +3240,7 @@ snapshots:
 
   '@types/mdast@4.0.4':
     dependencies:
-      '@types/unist': 2.0.11
+      '@types/unist': 3.0.3
 
   '@types/minimist@1.2.5': {}
 
@@ -3339,7 +3339,7 @@ snapshots:
   ccmanager@2.11.4:
     dependencies:
       '@xterm/headless': 5.5.0
-      effect: 3.19.3
+      effect: 3.19.4
       ink: 4.4.1(react@18.3.1)
       ink-select-input: 5.0.0(ink@4.4.1(react@18.3.1))(react@18.3.1)
       ink-text-input: 5.0.1(ink@4.4.1(react@18.3.1))(react@18.3.1)
@@ -3481,7 +3481,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  effect@3.19.3:
+  effect@3.19.4:
     dependencies:
       '@standard-schema/spec': 1.0.0
       fast-check: 3.23.2
@@ -4576,7 +4576,7 @@ snapshots:
 
   string-length@6.0.0:
     dependencies:
-      strip-ansi: 7.1.2
+      strip-ansi: 7.1.0
 
   string-width@4.2.3:
     dependencies:
@@ -4760,7 +4760,7 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.3
       string-width: 7.2.0
-      strip-ansi: 7.1.2
+      strip-ansi: 7.1.0
 
   ws@8.18.3: {}
 
