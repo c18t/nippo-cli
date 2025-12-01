@@ -3,7 +3,7 @@
   "devDependencies": {
     "@anthropic-ai/claude-code": "^2.0.42",
     "@devcontainers/cli": "^0.80.2",
-    "@fission-ai/openspec": "^0.14.0",
+    "@fission-ai/openspec": "^0.16.0",
     "ccmanager": "^2.11.4",
     "markdownlint-cli2": "^0.18.1",
     "pnpm": "^10.22.0",
