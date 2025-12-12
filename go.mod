@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/feeds v1.2.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/samber/do/v2 v2.0.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	golang.org/x/oauth2 v0.33.0
 	google.golang.org/api v0.257.0
