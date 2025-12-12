@@ -8,11 +8,11 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^2.0.55
-        version: 2.0.55
+        specifier: ^2.0.67
+        version: 2.0.67
       '@devcontainers/cli':
-        specifier: ^0.80.2
-        version: 0.80.2
+        specifier: ^0.80.3
+        version: 0.80.3
       '@fission-ai/openspec':
         specifier: ^0.16.0
         version: 0.16.0
@@ -23,20 +23,20 @@ importers:
         specifier: ^0.19.1
         version: 0.19.1
       pnpm:
-        specifier: ^10.22.0
-        version: 10.22.0
+        specifier: ^10.25.0
+        version: 10.25.0
       prettier:
-        specifier: ^3.7.3
-        version: 3.7.3
+        specifier: ^3.7.4
+        version: 3.7.4
       prettier-plugin-sh:
         specifier: ^0.18.0
-        version: 0.18.0(prettier@3.7.3)
+        version: 0.18.0(prettier@3.7.4)
       prettier-plugin-toml:
         specifier: ^2.0.6
-        version: 2.0.6(prettier@3.7.3)
+        version: 2.0.6(prettier@3.7.4)
       pretty-quick:
         specifier: ^4.2.2
-        version: 4.2.2(prettier@3.7.3)
+        version: 4.2.2(prettier@3.7.4)
       scaffdog:
         specifier: ^4.1.0
         version: 4.1.0
@@ -49,10 +49,10 @@ packages:
       }
     engines: { node: '>=14.13.1' }
 
-  '@anthropic-ai/claude-code@2.0.55':
+  '@anthropic-ai/claude-code@2.0.67':
     resolution:
       {
-        integrity: sha512-IVY6J2KgTP5BiCbLmuP3kAl8jbXfd6yGoXtvc0L0eiZwxJUMa+cubUU0U8qHRnVkNmDAis+O4P00KmeuGzSLWg==,
+        integrity: sha512-ze3/6SekyAUE+onUjYAKuF/7Qv/FVdOCtnQfT6IpURwf/sWYPIvtbtwYTE9QXROxKHMSj57nWIe/bI3eWGgKfA==,
       }
     engines: { node: '>=18.0.0' }
     hasBin: true
@@ -71,10 +71,10 @@ packages:
       }
     engines: { node: '>=6.9.0' }
 
-  '@devcontainers/cli@0.80.2':
+  '@devcontainers/cli@0.80.3':
     resolution:
       {
-        integrity: sha512-lBPrgwOwZZlo/Ypk1U51M2oR+zWg/iQlqInIFtGmn0lSg5qLIY2fNw3L0MhFfeMTFG82upzW8fXo7jYALYYq3w==,
+        integrity: sha512-PaN2NxSdVdrY77C4aiqXjFyrg8Bj86hMSdRsHnLCwsocPcMUNxOjLz6G7jKUy6K7FIHY38613LNwfBVi1ePpdA==,
       }
     engines: { node: ^16.13.0 || >=18.0.0 }
     hasBin: true
@@ -1030,10 +1030,10 @@ packages:
         integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==,
       }
 
-  effect@3.19.8:
+  effect@3.19.11:
     resolution:
       {
-        integrity: sha512-OmLw8EfH02vdmyU2fO4uY9He/wepwKI5E/JNpE2pseaWWUbaYOK9UlxIiKP20ZEqQr+S/jSqRDGmpiqD/2DeCQ==,
+        integrity: sha512-UTEj3c1s41Ha3uzSPKKvFBZaDjZ8ez00Q2NYWVm2mKh2LXeX8j6LTg1HcQHnmdUhOjr79KHmhVWYB/zbegLO1A==,
       }
 
   emoji-regex@10.6.0:
@@ -1285,10 +1285,10 @@ packages:
       }
     engines: { node: ^12.13.0 || ^14.15.0 || >=16.0.0 }
 
-  iconv-lite@0.7.0:
+  iconv-lite@0.7.1:
     resolution:
       {
-        integrity: sha512-cf6L2Ds3h57VVmkZe+Pn+5APsT7FpqJtEhhieDCvrE2MK5Qk9MyffgQyuxQTm6BChfeZNtcOLHp9IcWRVcIcBQ==,
+        integrity: sha512-2Tth85cXwGFHfvRgZWszZSvdo+0Xsqmw8k8ZwxScfcBneNUraK+dxRxRm24nszx80Y0TVio8kKLt5sLE7ZCLlw==,
       }
     engines: { node: '>=0.10.0' }
 
@@ -1605,10 +1605,10 @@ packages:
         integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==,
       }
 
-  katex@0.16.25:
+  katex@0.16.27:
     resolution:
       {
-        integrity: sha512-woHRUZ/iF23GBP1dkDQMh1QBad9dmr8/PAwNA54VrSOVYgI12MAcE14TqnDdQOdzyEonGzMepYnqBMYdsoAr8Q==,
+        integrity: sha512-aeQoDkuRWSqQN6nSvVCEFvfXdqo1OQiCmmW1kc9xSdjutPv7BGO7pqY9sQRJpMOGrEdfDgF2TfRXe5eUAD2Waw==,
       }
     hasBin: true
 
@@ -1626,10 +1626,10 @@ packages:
       }
     engines: { node: '>=6' }
 
-  ky@1.14.0:
+  ky@1.14.1:
     resolution:
       {
-        integrity: sha512-Rczb6FMM6JT0lvrOlP5WUOCB7s9XKxzwgErzhKlKde1bEV90FXplV1o87fpt4PU/asJFiqjYJxAJyzJhcrxOsQ==,
+        integrity: sha512-hYje4L9JCmpEQBtudo+v52X5X8tgWXUYyPcxKSuxQNboqufecl9VMWjGiucAFH060AwPXHZuH+WB2rrqfkmafw==,
       }
     engines: { node: '>=18' }
 
@@ -2133,10 +2133,10 @@ packages:
       }
     engines: { node: ^18.17.0 || >=20.5.0 }
 
-  nan@2.23.1:
+  nan@2.24.0:
     resolution:
       {
-        integrity: sha512-r7bBUGKzlqk8oPBDYxt6Z0aEdF1G1rwlMcLk8LCOMbOzf0mG+JUfUzG4fIMWwHWP0iyaLWEQZJmtB7nOHEm/qw==,
+        integrity: sha512-Vpf9qnVW1RaDkoNKFUvfxqAbtI8ncb8OJlqZ9wwpXzWPEsvsB1nvdUi6oYrHIkQ1Y/tMDnr1h4nczS0VB9Xykg==,
       }
 
   node-emoji@2.2.0:
@@ -2276,10 +2276,10 @@ packages:
       }
     engines: { node: ^12.20.0 || ^14.13.1 || >=16.0.0 }
 
-  pnpm@10.22.0:
+  pnpm@10.25.0:
     resolution:
       {
-        integrity: sha512-vwSe/plbKPUn/StBrgR0zikYb37cs79UUIe9Yfu+uyv3U2LRMH/aCcLSiOHkmXh6wS1Py2F6l0cYpgUfLu50HA==,
+        integrity: sha512-XoJjkCevN8+DIGG8xtY5whljRIjg8rrr54UCink957Ul/80/f/V09emGBlTgmP6FK6isXdXO/hdn0joCCpL1AQ==,
       }
     engines: { node: '>=18.12' }
     hasBin: true
@@ -2302,10 +2302,10 @@ packages:
     peerDependencies:
       prettier: ^3.0.3
 
-  prettier@3.7.3:
+  prettier@3.7.4:
     resolution:
       {
-        integrity: sha512-QgODejq9K3OzoBbuyobZlUhznP5SKwPqp+6Q6xw6o8gnhr4O85L2U915iM2IDcfF2NPXVaM9zlo9tdwipnYwzg==,
+        integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==,
       }
     engines: { node: '>=14' }
     hasBin: true
@@ -3030,7 +3030,7 @@ snapshots:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 4.0.0
 
-  '@anthropic-ai/claude-code@2.0.55':
+  '@anthropic-ai/claude-code@2.0.67':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -3049,7 +3049,7 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.28.5': {}
 
-  '@devcontainers/cli@0.80.2': {}
+  '@devcontainers/cli@0.80.3': {}
 
   '@fission-ai/openspec@0.16.0':
     dependencies:
@@ -3162,7 +3162,7 @@ snapshots:
   '@inquirer/external-editor@1.0.3':
     dependencies:
       chardet: 2.1.1
-      iconv-lite: 0.7.0
+      iconv-lite: 0.7.1
 
   '@inquirer/figures@1.0.15': {}
 
@@ -3407,7 +3407,7 @@ snapshots:
   ccmanager@2.11.6:
     dependencies:
       '@xterm/headless': 5.5.0
-      effect: 3.19.8
+      effect: 3.19.11
       ink: 4.4.1(react@18.3.1)
       ink-select-input: 5.0.0(ink@4.4.1(react@18.3.1))(react@18.3.1)
       ink-text-input: 5.0.1(ink@4.4.1(react@18.3.1))(react@18.3.1)
@@ -3549,7 +3549,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  effect@3.19.8:
+  effect@3.19.11:
     dependencies:
       '@standard-schema/spec': 1.0.0
       fast-check: 3.23.2
@@ -3676,7 +3676,7 @@ snapshots:
     dependencies:
       lru-cache: 7.18.3
 
-  iconv-lite@0.7.0:
+  iconv-lite@0.7.1:
     dependencies:
       safer-buffer: 2.1.2
 
@@ -3852,7 +3852,7 @@ snapshots:
 
   jsonc-parser@3.3.1: {}
 
-  katex@0.16.25:
+  katex@0.16.27:
     dependencies:
       commander: 8.3.0
 
@@ -3860,7 +3860,7 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  ky@1.14.0: {}
+  ky@1.14.1: {}
 
   latest-version@9.0.0:
     dependencies:
@@ -4069,7 +4069,7 @@ snapshots:
     dependencies:
       '@types/katex': 0.16.7
       devlop: 1.1.0
-      katex: 0.16.25
+      katex: 0.16.27
       micromark-factory-space: 2.0.1
       micromark-util-character: 2.1.1
       micromark-util-symbol: 2.0.1
@@ -4321,7 +4321,7 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  nan@2.23.1: {}
+  nan@2.24.0: {}
 
   node-emoji@2.2.0:
     dependencies:
@@ -4332,7 +4332,7 @@ snapshots:
 
   node-pty@1.0.0:
     dependencies:
-      nan: 2.23.1
+      nan: 2.24.0
 
   normalize-package-data@3.0.3:
     dependencies:
@@ -4390,7 +4390,7 @@ snapshots:
 
   package-json@10.0.1:
     dependencies:
-      ky: 1.14.0
+      ky: 1.14.1
       registry-auth-token: 5.1.0
       registry-url: 6.0.1
       semver: 7.7.3
@@ -4428,29 +4428,29 @@ snapshots:
     dependencies:
       irregular-plurals: 3.5.0
 
-  pnpm@10.22.0: {}
+  pnpm@10.25.0: {}
 
-  prettier-plugin-sh@0.18.0(prettier@3.7.3):
+  prettier-plugin-sh@0.18.0(prettier@3.7.4):
     dependencies:
       '@reteps/dockerfmt': 0.3.6
-      prettier: 3.7.3
+      prettier: 3.7.4
       sh-syntax: 0.5.8
 
-  prettier-plugin-toml@2.0.6(prettier@3.7.3):
+  prettier-plugin-toml@2.0.6(prettier@3.7.4):
     dependencies:
       '@taplo/lib': 0.5.0
-      prettier: 3.7.3
+      prettier: 3.7.4
 
-  prettier@3.7.3: {}
+  prettier@3.7.4: {}
 
-  pretty-quick@4.2.2(prettier@3.7.3):
+  pretty-quick@4.2.2(prettier@3.7.4):
     dependencies:
       '@pkgr/core': 0.2.9
       ignore: 7.0.5
       mri: 1.2.0
       picocolors: 1.1.1
       picomatch: 4.0.3
-      prettier: 3.7.3
+      prettier: 3.7.4
       tinyexec: 0.3.2
       tslib: 2.8.1
 
@@ -4653,7 +4653,7 @@ snapshots:
 
   string-length@6.0.0:
     dependencies:
-      strip-ansi: 7.1.2
+      strip-ansi: 7.1.0
 
   string-width@4.2.3:
     dependencies:
@@ -4837,7 +4837,7 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.3
       string-width: 7.2.0
-      strip-ansi: 7.1.2
+      strip-ansi: 7.1.0
 
   ws@8.18.3: {}
 

@@ -3,8 +3,8 @@ package view
 import (
 	"fmt"
 
+	"github.com/c18t/nippo-cli/internal/adapter/presenter/view/tui"
 	"github.com/c18t/nippo-cli/internal/core"
-	"github.com/manifoldco/promptui"
 	"github.com/samber/do/v2"
 )
 
@@ -51,7 +51,12 @@ type ConfigureProjectViewModel struct {
 type ConfigureProjectView interface {
 	Update(vm *ConfigureProjectViewModel)
 }
-type configureProjectView struct{}
+
+type configureProjectView struct {
+	cachedValues []string
+	cachedErr    error
+	wizardRan    bool
+}
 
 func NewConfigureProjectView(_ do.Injector) (ConfigureProjectView, error) {
 	return &configureProjectView{}, nil
@@ -62,24 +67,50 @@ func (v *configureProjectView) Update(vm *ConfigureProjectViewModel) {
 		return
 	}
 
+	// Run wizard on first call and cache all results
+	if !v.wizardRan {
+		v.runWizard()
+	}
+
+	// Return cached value or error based on sequence
+	if v.cachedErr != nil {
+		vm.Input <- v.cachedErr
+		return
+	}
+
 	switch vm.Sequence {
 	case ConfigureProjectSequence_InputProjectUrl:
-		prompt := promptui.Prompt{
-			Label:   "input your nippo project repository url",
-			Default: "https://github.com/c18t/nippo",
-		}
-		vm.Input <- either2(prompt.Run())
+		vm.Input <- v.cachedValues[0]
 	case ConfigureProjectSequence_SelectTemplatePath:
-		prompt := promptui.Prompt{
-			Label:   "input project template path",
-			Default: "/templates",
-		}
-		vm.Input <- either2(prompt.Run())
+		vm.Input <- v.cachedValues[1]
 	case ConfigureProjectSequence_SelectAssetPath:
-		prompt := promptui.Prompt{
-			Label:   "input project asset path",
-			Default: "/output",
-		}
-		vm.Input <- either2(prompt.Run())
+		vm.Input <- v.cachedValues[2]
 	}
+}
+
+func (v *configureProjectView) runWizard() {
+	v.wizardRan = true
+
+	steps := []tui.WizardStep{
+		{
+			Label:        "input your nippo project repository url",
+			DefaultValue: "https://github.com/c18t/nippo",
+		},
+		{
+			Label:        "input project template path",
+			DefaultValue: "/templates",
+		},
+		{
+			Label:        "input project asset path",
+			DefaultValue: "/output",
+		},
+	}
+
+	values, err := tui.RunWizard(steps)
+	if err != nil {
+		v.cachedErr = err
+		return
+	}
+
+	v.cachedValues = values
 }

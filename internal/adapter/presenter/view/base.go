@@ -1,7 +1,7 @@
 package view
 
 import (
-	"fmt"
+	"github.com/c18t/nippo-cli/internal/adapter/presenter/view/tui"
 )
 
 type viewModel struct {
@@ -12,7 +12,7 @@ type viewModel struct {
 func message(output interface{}) bool {
 	ret := output != nil
 	if ret {
-		fmt.Printf("%v", output)
+		tui.Print(output)
 	}
 	return ret
 }

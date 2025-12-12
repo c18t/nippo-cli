@@ -94,47 +94,31 @@ alias = "dev-up"
 run = """
 #!/usr/bin/env -S bash -euo pipefail
 if [ "${DEVCONTAINER:-false}" == "true" ]; then
-  mise run dev-up:claude-code-stop-autoupdates
-  mise run dev-up:ccmanager-skip-permissions
+  # mise run dev-up:claude-code-stop-autoupdates
+  mise run dev-up:claude-code-skip-permissions
   mise run dev-up:ccmanager-worktree-settings
-  ccmanager
+  # ccmanager
+  claude
 else
-  ccmanager --devc-up-command 'devcontainer up --workspace-folder .' --devc-exec-command 'devcontainer exec --workspace-folder . -- claude --dangerously-skip-permissions'
+  ccmanager --devc-up-command 'devcontainer up --workspace-folder .' --devc-exec-command 'devcontainer exec --workspace-folder . -- claude'
 fi
 """
 
-[tasks."dev-up:claude-code-stop-autoupdates"]
-description = "Set up Claude Code to disable auto-updates"
+[tasks."dev-up:claude-code-skip-permissions"]
+description = "Set up claude code to skip permissions"
 run = """
 #!/usr/bin/env -S bash -euo pipefail
 if [ "${DEVCONTAINER:-false}" != "true" ]; then
   echo 'YOU ARE NOT IN DEVCONTAINER. Abort.'
   exit 1
 fi
-SETTING=~/.claude.json
+SETTING=~/.claude/settings.json
 if [ ! -e ${SETTING} ]; then
   claude --help 2>&1 >/dev/null
 fi
 TMPFILE=$(mktemp)
-jq '.autoInstallIdeExtension=false|.autoUpdates=false' ${SETTING} > ${TMPFILE} && mv ${TMPFILE} ${SETTING}
-echo 'disabled claude code autoupdates and extension installation'
-"""
-
-[tasks."dev-up:ccmanager-skip-permissions"]
-description = "Set up ccmanager to skip permissions"
-run = """
-#!/usr/bin/env -S bash -euo pipefail
-if [ "${DEVCONTAINER:-false}" != "true" ]; then
-  echo 'YOU ARE NOT IN DEVCONTAINER. Abort.'
-  exit 1
-fi
-SETTING=~/.config/ccmanager/config.json
-if [ ! -e ${SETTING} ]; then
-  ccmanager --help 2>&1 >/dev/null
-fi
-TMPFILE=$(mktemp)
-jq .commandPresets.presets[0].args='["--dangerously-skip-permissions"]' ${SETTING} > ${TMPFILE} && mv ${TMPFILE} ${SETTING}
-echo 'made ccmanager skip permissions'
+jq '.permissions.defaultMode="bypassPermissions"' ${SETTING} > ${TMPFILE} && mv ${TMPFILE} ${SETTING}
+echo 'made claude code skip permissions'
 """
 
 [tasks."dev-up:ccmanager-worktree-settings"]

@@ -106,6 +106,10 @@ func (u *buildCommandInteractor) Handle(input *port.BuildCommandUseCaseInputData
 }
 
 func (u *buildCommandInteractor) downloadNippo() error {
+	// Show spinner while fetching file list
+	u.presenter.Progress(&port.BuildCommandUseCaseOutputData{Message: "Fetching file list from Google Drive..."})
+
+	started := false
 	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
 		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
 		Query: &repository.QueryListParam{
@@ -117,8 +121,30 @@ func (u *buildCommandInteractor) downloadNippo() error {
 		Option: &repository.QueryListOption{
 			Recursive: true,
 		},
-	}, &service.NippoFacadeOption{})
+	}, &service.NippoFacadeOption{
+		OnProgress: func(filename string, fileId string, current int, total int) bool {
+			if !started {
+				// Stop the "fetching" spinner and start build progress
+				u.presenter.StopProgress()
+				u.presenter.StartBuildProgress(total)
+				started = true
+			}
+			u.presenter.UpdateBuildProgress(filename, fileId)
+			// Return false if user cancelled
+			return !u.presenter.IsBuildCancelled()
+		},
+	})
+	if started {
+		u.presenter.StopBuildProgress()
+	} else {
+		// No files to download, stop the spinner
+		u.presenter.StopProgress()
+	}
 	if err != nil {
+		if err == service.ErrCancelled {
+			// User cancelled, exit silently
+			return err
+		}
 		return err
 	}
 	core.Cfg.LastUpdateCheckTimestamp = time.Now()

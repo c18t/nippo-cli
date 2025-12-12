@@ -1,13 +1,11 @@
 package presenter
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter/view"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"github.com/samber/do/v2"
-	"github.com/spf13/cobra"
 )
 
 type InitCommandPresenter interface {
@@ -29,23 +27,31 @@ type initCommandPresenter struct {
 }
 
 func NewInitSettingPresenter(i do.Injector) (InitSettingPresenter, error) {
+	base, err := do.Invoke[ConsolePresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	viewProvider, err := do.Invoke[view.InitViewProvider](i)
 	if err != nil {
 		return nil, err
 	}
 	return &initCommandPresenter{
-		&consolePresenter{},
+		base,
 		viewProvider,
 	}, nil
 }
 
 func NewInitSaveDriveTokenPresenter(i do.Injector) (InitSaveDriveTokenPresenter, error) {
+	base, err := do.Invoke[ConsolePresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	viewProvider, err := do.Invoke[view.InitViewProvider](i)
 	if err != nil {
 		return nil, err
 	}
 	return &initCommandPresenter{
-		&consolePresenter{},
+		base,
 		viewProvider,
 	}, nil
 }
@@ -69,18 +75,14 @@ func (p *initCommandPresenter) Prompt(ch chan<- interface{}, output *port.InitSe
 
 func (p *initCommandPresenter) Progress(output port.InitUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
-	vm := &view.ConfigureProjectViewModel{}
-	vm.Output = fmt.Sprint(v.String())
-	p.viewProvider.Handle(vm)
+	p.base.Progress(v.String())
 }
 
 func (p *initCommandPresenter) Complete(output port.InitUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
-	vm := &view.ConfigureProjectViewModel{}
-	vm.Output = fmt.Sprintln(v.String())
-	p.viewProvider.Handle(vm)
+	p.base.Complete(v.String())
 }
 
 func (p *initCommandPresenter) Suspend(err error) {
-	cobra.CheckErr(err)
+	p.base.Suspend(err)
 }
