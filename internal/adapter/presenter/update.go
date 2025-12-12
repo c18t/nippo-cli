@@ -9,6 +9,7 @@ import (
 
 type UpdateCommandPresenter interface {
 	Progress(output *port.UpdateCommandUseCaseOutputData)
+	StopProgress()
 	Complete(output *port.UpdateCommandUseCaseOutputData)
 	Suspend(err error)
 }
@@ -28,6 +29,10 @@ func NewUpdateCommandPresenter(i do.Injector) (UpdateCommandPresenter, error) {
 func (p *updateCommandPresenter) Progress(output *port.UpdateCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
+}
+
+func (p *updateCommandPresenter) StopProgress() {
+	p.base.StopProgress()
 }
 
 func (p *updateCommandPresenter) Complete(output *port.UpdateCommandUseCaseOutputData) {

@@ -64,8 +64,6 @@ func NewBuildCommandInteractor(i do.Injector) (port.BuildCommandUseCase, error) 
 }
 
 func (u *buildCommandInteractor) Handle(input *port.BuildCommandUseCaseInputData) {
-	output := &port.BuildCommandUseCaseOutputData{}
-
 	if err := u.downloadNippo(); err != nil {
 		u.presenter.Suspend(err)
 		return
@@ -100,9 +98,6 @@ func (u *buildCommandInteractor) Handle(input *port.BuildCommandUseCaseInputData
 		u.presenter.Suspend(err)
 		return
 	}
-
-	output.Message = "ok. "
-	u.presenter.Complete(output)
 }
 
 func (u *buildCommandInteractor) downloadNippo() error {

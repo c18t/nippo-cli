@@ -35,7 +35,7 @@ func NewUpdateCommandInteractor(i do.Injector) (port.UpdateCommandUseCase, error
 
 func (u *updateCommandInteractor) Handle(input *port.UpdateCommandUseCaseInputData) {
 	output := &port.UpdateCommandUseCaseOutputData{}
-	output.Message = "updating project files... "
+	output.Message = "updating project files..."
 	u.presenter.Progress(output)
 
 	err := u.downloadProject()
@@ -44,8 +44,8 @@ func (u *updateCommandInteractor) Handle(input *port.UpdateCommandUseCaseInputDa
 		return
 	}
 
-	output.Message = "ok."
-	u.presenter.Complete(output)
+	// Progress() で開始したスピナーは自動的に "ok." が付く
+	u.presenter.StopProgress()
 }
 
 func (u *updateCommandInteractor) downloadProject() error {

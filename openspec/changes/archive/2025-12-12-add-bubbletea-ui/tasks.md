@@ -1,3 +1,5 @@
+# Tasks: Add BubbleTea UI
+
 ## 1. Dependencies
 
 - [x] 1.1 Add `github.com/charmbracelet/bubbletea` to go.mod

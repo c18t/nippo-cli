@@ -9,6 +9,7 @@ import (
 
 type DeployCommandPresenter interface {
 	Progress(output *port.DeployCommandUseCaseOutputData)
+	StopProgress()
 	Complete(output *port.DeployCommandUseCaseOutputData)
 	Suspend(err error)
 }
@@ -28,6 +29,10 @@ func NewDeployCommandPresenter(i do.Injector) (DeployCommandPresenter, error) {
 func (p *deployCommandPresenter) Progress(output *port.DeployCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
+}
+
+func (p *deployCommandPresenter) StopProgress() {
+	p.base.StopProgress()
 }
 
 func (p *deployCommandPresenter) Complete(output *port.DeployCommandUseCaseOutputData) {

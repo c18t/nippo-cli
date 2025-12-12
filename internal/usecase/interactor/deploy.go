@@ -35,7 +35,7 @@ func NewDeployCommandInteractor(i do.Injector) (port.DeployCommandUseCase, error
 
 func (u *deployCommandInteractor) Handle(input *port.DeployCommandUseCaseInputData) {
 	output := &port.DeployCommandUseCaseOutputData{}
-	output.Message = "deploying to vercel... "
+	output.Message = "deploying to vercel..."
 	u.presenter.Progress(output)
 
 	dataDir := filepath.Join(core.Cfg.GetDataDir(), "output")
@@ -62,6 +62,6 @@ func (u *deployCommandInteractor) Handle(input *port.DeployCommandUseCaseInputDa
 		return
 	}
 
-	output.Message = "ok. "
-	u.presenter.Complete(output)
+	// Progress() で開始したスピナーは自動的に "ok." が付く
+	u.presenter.StopProgress()
 }

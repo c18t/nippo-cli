@@ -101,9 +101,22 @@ func (g *driveFileProvider) getFileService() (*drive.FilesService, error) {
 		return nil, err
 	}
 
-	b, err := os.ReadFile(filepath.Join(dataDir, "credentials.json"))
+	credPath := filepath.Join(dataDir, "credentials.json")
+	b, err := os.ReadFile(credPath)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read client secret file: %v", err)
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf(`credentials.json not found
+
+Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
+
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Create OAuth 2.0 Client ID (Application type: Desktop app)
+3. Download the credentials JSON file
+4. Save it to: %s
+
+Note: Run 'nippo init' to set up your environment`, credPath)
+		}
+		return nil, fmt.Errorf("unable to read credentials file: %w", err)
 	}
 
 	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveReadonlyScope)

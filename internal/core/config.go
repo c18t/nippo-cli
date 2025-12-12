@@ -106,7 +106,15 @@ func (c *Config) LoadConfig(filePath string) error {
 	if err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			_ = viper.SafeWriteConfig()
+			// Ensure config directory exists
+			configDir := c.GetConfigDir()
+			if err := os.MkdirAll(configDir, 0755); err != nil {
+				return fmt.Errorf("failed to create config directory: %w", err)
+			}
+			// Now safe to write config
+			if err := viper.SafeWriteConfig(); err != nil {
+				return fmt.Errorf("failed to write config: %w", err)
+			}
 		default:
 			return err
 		}

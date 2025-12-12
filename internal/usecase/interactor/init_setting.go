@@ -97,7 +97,7 @@ func (u *initSettingInteractor) configureProject(input *port.InitSettingUseCaseI
 	}
 
 	// 設定の更新
-	output.Message = "saving project config... "
+	output.Message = "Saving project config..."
 	u.presenter.Progress(output)
 	core.Cfg.Project.Url = string(output.Project.Url)
 	core.Cfg.Project.TemplatePath = string(output.Project.TemplatePath)
@@ -105,8 +105,7 @@ func (u *initSettingInteractor) configureProject(input *port.InitSettingUseCaseI
 	if err := core.Cfg.SaveConfig(); err != nil {
 		return err
 	}
-	output.Message = "ok."
-	u.presenter.Complete(output)
+	// Progress() で開始したスピナーは次の Progress() または Complete() で自動的に "ok." が付く
 	output.Message = ""
 
 	return nil

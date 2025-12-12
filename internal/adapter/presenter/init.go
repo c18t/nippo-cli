@@ -12,6 +12,7 @@ type InitCommandPresenter interface {
 	Progress(output port.InitUseCaseOutputData)
 	Complete(output port.InitUseCaseOutputData)
 	Suspend(err error)
+	IsCancelled() bool
 }
 type InitSettingPresenter interface {
 	InitCommandPresenter
@@ -85,4 +86,8 @@ func (p *initCommandPresenter) Complete(output port.InitUseCaseOutputData) {
 
 func (p *initCommandPresenter) Suspend(err error) {
 	p.base.Suspend(err)
+}
+
+func (p *initCommandPresenter) IsCancelled() bool {
+	return p.base.IsCancelled()
 }

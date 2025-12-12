@@ -1,4 +1,10 @@
-## ADDED Requirements
+# ui-presentation Specification
+
+## Purpose
+
+TBD - created by archiving change add-bubbletea-ui. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: TUI Framework Integration
 

@@ -68,10 +68,8 @@ func (m SpinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the spinner
 func (m SpinnerModel) View() string {
 	if m.done {
-		if m.interrupted {
-			return fmt.Sprintf("%s %s %s", WarningStyle.Render("✗"), m.message, DimStyle.Render("(interrupted)"))
-		}
-		return fmt.Sprintf("%s %s", SuccessStyle.Render("✓"), m.message)
+		// Don't render when done - Stop() will print the final message
+		return ""
 	}
 	return fmt.Sprintf("%s %s", m.spinner.View(), m.message)
 }
@@ -98,10 +96,12 @@ func RunSpinner(message string, fn func() error) error {
 
 // SpinnerController manages a spinner that can be started/stopped/updated
 type SpinnerController struct {
-	program *tea.Program
-	running bool
-	done    chan struct{}
-	mu      sync.Mutex
+	program        *tea.Program
+	running        bool
+	cancelled      bool
+	done           chan struct{}
+	mu             sync.Mutex
+	currentMessage string
 }
 
 // NewSpinnerController creates a new spinner controller
@@ -118,13 +118,20 @@ func (c *SpinnerController) Start(message string) {
 		return
 	}
 
+	c.currentMessage = message
+	c.cancelled = false
 	m := NewSpinnerModel(message)
 	c.program = tea.NewProgram(m)
 	c.done = make(chan struct{})
 	c.running = true
 
 	go func() {
-		c.program.Run()
+		model, _ := c.program.Run()
+		if sm, ok := model.(SpinnerModel); ok && sm.interrupted {
+			c.mu.Lock()
+			c.cancelled = true
+			c.mu.Unlock()
+		}
 		close(c.done)
 	}()
 }
@@ -141,7 +148,14 @@ func (c *SpinnerController) UpdateMessage(message string) {
 	c.program.Send(UpdateMessageMsg{Message: message})
 }
 
-// Stop stops the spinner
+// GetCurrentMessage returns the current spinner message
+func (c *SpinnerController) GetCurrentMessage() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.currentMessage
+}
+
+// Stop stops the spinner and clears the current message
 func (c *SpinnerController) Stop() {
 	c.mu.Lock()
 	if !c.running || c.program == nil {
@@ -151,8 +165,16 @@ func (c *SpinnerController) Stop() {
 	c.program.Send(DoneMsg{})
 	done := c.done
 	c.running = false
+	c.currentMessage = ""
 	c.mu.Unlock()
 
 	// Wait for program to finish
 	<-done
+}
+
+// IsCancelled returns true if the spinner was cancelled by Ctrl+C
+func (c *SpinnerController) IsCancelled() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.cancelled
 }
