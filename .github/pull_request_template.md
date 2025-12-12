@@ -1,4 +1,4 @@
-solves: #1
+resolves: #1
 
 ## 前提 / Prerequisites
 
