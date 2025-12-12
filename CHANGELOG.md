@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.15.4](https://github.com/c18t/nippo-cli/compare/v0.15.3...v0.15.4) - 2025-12-12
+- chore(deps): update dependencies by @c18t in https://github.com/c18t/nippo-cli/pull/69
+- Bump github.com/spf13/cobra from 1.10.1 to 1.10.2 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/68
+
 ## [v0.15.3](https://github.com/c18t/nippo-cli/compare/v0.15.2...v0.15.3) - 2025-11-17
 - chore: update devcontainer and dependencies by @c18t in https://github.com/c18t/nippo-cli/pull/59
 
