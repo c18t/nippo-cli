@@ -26,17 +26,17 @@ importers:
         specifier: ^10.22.0
         version: 10.22.0
       prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
+        specifier: ^3.7.3
+        version: 3.7.3
       prettier-plugin-sh:
         specifier: ^0.18.0
-        version: 0.18.0(prettier@3.6.2)
+        version: 0.18.0(prettier@3.7.3)
       prettier-plugin-toml:
         specifier: ^2.0.6
-        version: 2.0.6(prettier@3.6.2)
+        version: 2.0.6(prettier@3.7.3)
       pretty-quick:
         specifier: ^4.2.2
-        version: 4.2.2(prettier@3.6.2)
+        version: 4.2.2(prettier@3.7.3)
       scaffdog:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2288,10 +2288,10 @@ packages:
     peerDependencies:
       prettier: ^3.0.3
 
-  prettier@3.6.2:
+  prettier@3.7.3:
     resolution:
       {
-        integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==,
+        integrity: sha512-QgODejq9K3OzoBbuyobZlUhznP5SKwPqp+6Q6xw6o8gnhr4O85L2U915iM2IDcfF2NPXVaM9zlo9tdwipnYwzg==,
       }
     engines: { node: '>=14' }
     hasBin: true
@@ -4405,27 +4405,27 @@ snapshots:
 
   pnpm@10.22.0: {}
 
-  prettier-plugin-sh@0.18.0(prettier@3.6.2):
+  prettier-plugin-sh@0.18.0(prettier@3.7.3):
     dependencies:
       '@reteps/dockerfmt': 0.3.6
-      prettier: 3.6.2
+      prettier: 3.7.3
       sh-syntax: 0.5.8
 
-  prettier-plugin-toml@2.0.6(prettier@3.6.2):
+  prettier-plugin-toml@2.0.6(prettier@3.7.3):
     dependencies:
       '@taplo/lib': 0.5.0
-      prettier: 3.6.2
+      prettier: 3.7.3
 
-  prettier@3.6.2: {}
+  prettier@3.7.3: {}
 
-  pretty-quick@4.2.2(prettier@3.6.2):
+  pretty-quick@4.2.2(prettier@3.7.3):
     dependencies:
       '@pkgr/core': 0.2.9
       ignore: 7.0.5
       mri: 1.2.0
       picocolors: 1.1.1
       picomatch: 4.0.3
-      prettier: 3.6.2
+      prettier: 3.7.3
       tinyexec: 0.3.2
       tslib: 2.8.1
 
