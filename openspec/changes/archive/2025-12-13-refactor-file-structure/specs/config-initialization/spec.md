@@ -1,11 +1,6 @@
-# config-initialization Specification
+# config-initialization Spec Delta
 
-## Purpose
-
-Define the initialization behavior for nippo-cli configuration, including
-directory creation and configuration file management.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Required Directory Creation
 
@@ -89,18 +84,7 @@ support platform-specific default directories.
 **And** the output SHALL indicate that configuration file is missing
 **And** the suggested fix SHALL guide the user to run `nippo init`
 
-### Requirement: Error Handling
-
-The system SHALL provide clear error messages and proper error propagation when
-configuration loading fails.
-
-#### Scenario: Proper error propagation
-
-**Given** any error occurs during config initialization
-**When** the error is returned to the caller
-**Then** the error must be wrapped using `fmt.Errorf` with `%w`
-**And** the error message must provide context about which operation failed
-**And** the original error must be preserved in the error chain
+## ADDED Requirements
 
 ### Requirement: Project Configuration Enhancements
 

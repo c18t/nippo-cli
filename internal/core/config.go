@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -13,27 +14,52 @@ import (
 
 var Cfg *Config
 
+// ErrConfigNotFound is returned when the configuration file does not exist.
+// This indicates the user should run 'nippo init' first.
+type ErrConfigNotFound struct {
+	Path string
+}
+
+func (e *ErrConfigNotFound) Error() string {
+	return fmt.Sprintf("configuration file not found: %s", e.Path)
+}
+
 type Config struct {
-	configDir string
-	dataDir   string
-	cacheDir  string
+	configDir string // resolved config directory (not persisted)
+	dataDir   string // cached resolved data directory
+	cacheDir  string // cached resolved cache directory
 
 	LastUpdateCheckTimestamp time.Time     `mapstructure:"last_update_check_timestamp"`
 	LastFormatTimestamp      time.Time     `mapstructure:"last_format_timestamp"`
 	Project                  ConfigProject `mapstructure:"project"`
-}
-type ConfigProject struct {
-	Url          string `mapstructure:"url"`
-	TemplatePath string `mapstructure:"template_path"`
-	AssetPath    string `mapstructure:"asset_path"`
+	Paths                    ConfigPaths   `mapstructure:"path"`
 }
 
-// InitConfig initializes the global configuration
+type ConfigProject struct {
+	Url           string `mapstructure:"url"`
+	DriveFolderId string `mapstructure:"drive_folder_id"`
+	SiteUrl       string `mapstructure:"site_url"`
+	Branch        string `mapstructure:"branch"`
+	TemplatePath  string `mapstructure:"template_path"`
+	AssetPath     string `mapstructure:"asset_path"`
+}
+
+type ConfigPaths struct {
+	DataDir  string `mapstructure:"data_dir"`
+	CacheDir string `mapstructure:"cache_dir"`
+}
+
+// InitConfig initializes the global configuration.
+// If the config file is not found, Cfg is initialized with defaults
+// and ErrConfigNotFound is returned. The caller can check for this
+// error type to decide whether to proceed without a config file.
 func InitConfig(configFile string) error {
 	cfg := &Config{}
 	err := cfg.LoadConfig(configFile)
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		// Always set Cfg so commands can access default paths
+		Cfg = cfg
+		return err
 	}
 	Cfg = cfg
 	return nil
@@ -48,14 +74,17 @@ func (c *Config) GetConfigDir() string {
 	if c.configDir != "" {
 		return c.configDir
 	}
-
-	defaultConfigDir := filepath.Join(c.homeDir(), ".config")
-	configDir := os.Getenv("XDG_CONFIG_HOME")
-	if configDir == "" || !filepath.IsAbs(configDir) {
-		configDir = defaultConfigDir
-	}
-	c.configDir = filepath.Join(configDir, "nippo")
+	c.configDir = ResolveConfigDir()
 	return c.configDir
+}
+
+// GetConfigFilePath returns the path to the config file.
+// If viper has a config file set, returns that. Otherwise returns default path.
+func GetConfigFilePath() string {
+	if cfgFile := viper.ConfigFileUsed(); cfgFile != "" {
+		return cfgFile
+	}
+	return filepath.Join(ResolveConfigDir(), "nippo.toml")
 }
 
 func (c *Config) GetDataDir() string {
@@ -63,12 +92,19 @@ func (c *Config) GetDataDir() string {
 		return c.dataDir
 	}
 
-	defaultDataDir := filepath.Join(c.homeDir(), ".local", "share")
-	dataDir := os.Getenv("XDG_DATA_HOME")
-	if dataDir == "" || !filepath.IsAbs(dataDir) {
-		dataDir = defaultDataDir
+	// Priority: configured path > fallback chain
+	if c.Paths.DataDir != "" {
+		expanded := ExpandPath(c.Paths.DataDir)
+		if filepath.IsAbs(expanded) {
+			c.dataDir = expanded
+		} else {
+			// Relative paths are resolved relative to config directory
+			c.dataDir = filepath.Join(c.GetConfigDir(), expanded)
+		}
+		return c.dataDir
 	}
-	c.dataDir = filepath.Join(dataDir, "nippo")
+
+	c.dataDir = ResolveDataDir()
 	return c.dataDir
 }
 
@@ -77,12 +113,19 @@ func (c *Config) GetCacheDir() string {
 		return c.cacheDir
 	}
 
-	defaultCacheDir := filepath.Join(c.homeDir(), ".cache")
-	cacheDir := os.Getenv("XDG_CACHE_HOME")
-	if cacheDir == "" || !filepath.IsAbs(cacheDir) {
-		cacheDir = defaultCacheDir
+	// Priority: configured path > fallback chain
+	if c.Paths.CacheDir != "" {
+		expanded := ExpandPath(c.Paths.CacheDir)
+		if filepath.IsAbs(expanded) {
+			c.cacheDir = expanded
+		} else {
+			// Relative paths are resolved relative to config directory
+			c.cacheDir = filepath.Join(c.GetConfigDir(), expanded)
+		}
+		return c.cacheDir
 	}
-	c.cacheDir = filepath.Join(cacheDir, "nippo")
+
+	c.cacheDir = ResolveCacheDir()
 	return c.cacheDir
 }
 
@@ -93,6 +136,11 @@ func (c *Config) ResetLastUpdateCheckTimestamp() {
 func (c *Config) LoadConfig(filePath string) error {
 	if filePath != "" {
 		viper.SetConfigFile(filePath)
+		// Set configDir to the directory containing the specified config file
+		absPath, err := filepath.Abs(filePath)
+		if err == nil {
+			c.configDir = filepath.Dir(absPath)
+		}
 	} else {
 		viper.AddConfigPath(c.GetConfigDir())
 		viper.SetConfigType("toml")
@@ -102,20 +150,18 @@ func (c *Config) LoadConfig(filePath string) error {
 	// set default value
 	viper.SetDefault("last_update_check_timestamp", c.getDefaultLastUpdateCheckTimestamp())
 
+	viper.SetEnvPrefix("NIPPO")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			// Ensure config directory exists
-			configDir := c.GetConfigDir()
-			if err := os.MkdirAll(configDir, 0755); err != nil {
-				return fmt.Errorf("failed to create config directory: %w", err)
+			// Do not auto-create config file. Return ErrConfigNotFound.
+			configPath := filepath.Join(c.GetConfigDir(), "nippo.toml")
+			if filePath != "" {
+				configPath = filePath
 			}
-			// Now safe to write config
-			if err := viper.SafeWriteConfig(); err != nil {
-				return fmt.Errorf("failed to write config: %w", err)
-			}
+			return &ErrConfigNotFound{Path: configPath}
 		default:
 			return err
 		}
@@ -128,22 +174,66 @@ func (c *Config) SaveConfig() error {
 	if err != nil {
 		return err
 	}
+
+	// Check if paths are configured (non-empty)
+	pathsConfigured := c.Paths.DataDir != "" || c.Paths.CacheDir != ""
+
 	for key := range cMaps {
+		// Skip empty path values - we'll add them as comments later
+		if !pathsConfigured && (key == "path.data_dir" || key == "path.cache_dir") {
+			continue
+		}
 		viper.Set(key, cMaps[key])
 	}
-	err = viper.WriteConfig()
+	// Use WriteConfigAs to handle both new and existing config files
+	configPath := GetConfigFilePath()
+
+	// Ensure config directory exists
+	configDir := filepath.Dir(configPath)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return err
+	}
+
+	err = viper.WriteConfigAs(configPath)
 	if err != nil {
 		return err
 	}
+
+	// If paths are not configured, append commented [path] section
+	if !pathsConfigured {
+		err = c.appendCommentedPathsSection()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func (c *Config) homeDir() string {
-	home, err := os.UserHomeDir()
+// appendCommentedPathsSection adds a commented [path] section to the config file
+func (c *Config) appendCommentedPathsSection() error {
+	configPath := GetConfigFilePath()
+
+	// Read current content
+	content, err := os.ReadFile(configPath)
 	if err != nil {
-		home = ""
+		return err
 	}
-	return home
+
+	// Check if [path] section already exists
+	if strings.Contains(string(content), "[path]") {
+		return nil
+	}
+
+	// Append commented path section
+	pathsSection := fmt.Sprintf(`
+[path]
+# Uncomment and modify to customize file locations.
+# data_dir = %q
+# cache_dir = %q
+`, ResolveDataDir(), ResolveCacheDir())
+
+	return os.WriteFile(configPath, append(content, []byte(pathsSection)...), 0644)
 }
 
 func (c *Config) configFieldMap(cMap map[string]any, i interface{}, prefex string) (map[string]any, error) {

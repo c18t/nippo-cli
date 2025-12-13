@@ -11,7 +11,8 @@ import (
 // WizardStep represents a single step in the wizard
 type WizardStep struct {
 	Label        string
-	DefaultValue string
+	Placeholder  string // Hint text shown when input is empty
+	InitialValue string // Pre-filled value (from existing config)
 	Value        string
 	Completed    bool
 }
@@ -44,8 +45,8 @@ func NewWizardModel(steps []WizardStep) WizardModel {
 func (m *WizardModel) initCurrentStep() {
 	if m.currentStep < len(m.steps) {
 		step := m.steps[m.currentStep]
-		m.textInput.Placeholder = step.DefaultValue
-		m.textInput.SetValue(step.DefaultValue)
+		m.textInput.Placeholder = step.Placeholder
+		m.textInput.SetValue(step.InitialValue)
 		m.textInput.Focus()
 	}
 }
@@ -62,7 +63,12 @@ func (m WizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			// Save current value and move to next step
-			m.steps[m.currentStep].Value = m.textInput.Value()
+			// Use placeholder as fallback if input is empty
+			value := m.textInput.Value()
+			if value == "" {
+				value = m.steps[m.currentStep].Placeholder
+			}
+			m.steps[m.currentStep].Value = value
 			m.steps[m.currentStep].Completed = true
 			m.currentStep++
 
@@ -152,4 +158,81 @@ func RunWizard(steps []WizardStep) ([]string, error) {
 	}
 
 	return result.Values(), nil
+}
+
+// ConfirmModel is a simple yes/no confirmation prompt
+type ConfirmModel struct {
+	prompt    string
+	confirmed bool
+	answered  bool
+	cancelled bool
+	err       error
+}
+
+// NewConfirmModel creates a new confirmation prompt
+func NewConfirmModel(prompt string, defaultYes bool) ConfirmModel {
+	return ConfirmModel{
+		prompt:    prompt,
+		confirmed: defaultYes,
+	}
+}
+
+// Init initializes the confirm model
+func (m ConfirmModel) Init() tea.Cmd {
+	return nil
+}
+
+// Update handles messages for the confirm model
+func (m ConfirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "y", "Y":
+			m.confirmed = true
+			m.answered = true
+			return m, tea.Quit
+		case "n", "N", "enter":
+			m.confirmed = false
+			m.answered = true
+			return m, tea.Quit
+		case "ctrl+c", "esc":
+			m.cancelled = true
+			m.err = fmt.Errorf("input cancelled")
+			return m, tea.Quit
+		}
+	}
+	return m, nil
+}
+
+// View renders the confirmation prompt
+func (m ConfirmModel) View() string {
+	if m.answered {
+		answer := "No"
+		if m.confirmed {
+			answer = "Yes"
+		}
+		return PromptStyle.Render(m.prompt) + " " + DimStyle.Render("[y/N]") + " " + SuccessStyle.Render(answer+"\n")
+	}
+	if m.cancelled {
+		return PromptStyle.Render(m.prompt) + " " + DimStyle.Render("[y/N]") + " " + WarningStyle.Render("(cancelled)\n")
+	}
+	return PromptStyle.Render(m.prompt) + " " + DimStyle.Render("[y/N]") + " "
+}
+
+// RunConfirm runs an interactive yes/no confirmation and returns the result
+func RunConfirm(prompt string, defaultYes bool) (bool, error) {
+	m := NewConfirmModel(prompt, defaultYes)
+	p := tea.NewProgram(m)
+
+	finalModel, err := p.Run()
+	if err != nil {
+		return false, err
+	}
+
+	result := finalModel.(ConfirmModel)
+	if result.err != nil {
+		return false, result.err
+	}
+
+	return result.confirmed, nil
 }

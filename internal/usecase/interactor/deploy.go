@@ -38,18 +38,19 @@ func (u *deployCommandInteractor) Handle(input *port.DeployCommandUseCaseInputDa
 	output.Message = "deploying to vercel..."
 	u.presenter.Progress(output)
 
-	dataDir := filepath.Join(core.Cfg.GetDataDir(), "output")
+	// Static assets from template repo (mapped from project.asset_path)
+	assetsDir := filepath.Join(core.Cfg.GetDataDir(), "assets")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
 
 	files, err := u.provider.List(&repository.QueryListParam{
-		Folders: []string{dataDir},
+		Folders: []string{assetsDir},
 	})
 	if err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
 	for _, file := range files {
-		err = u.provider.Copy(filepath.Join(outputDir, file.Name()), filepath.Join(dataDir, file.Name()))
+		err = u.provider.Copy(filepath.Join(outputDir, file.Name()), filepath.Join(assetsDir, file.Name()))
 		if err != nil {
 			u.presenter.Suspend(err)
 			return

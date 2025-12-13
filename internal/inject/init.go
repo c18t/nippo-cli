@@ -20,11 +20,9 @@ var InitPackage = do.Package(
 
 	// usecase/interactor
 	do.Lazy(interactor.NewInitSettingInteractor),
-	do.Lazy(interactor.NewInitSaveDriveTokenInteractor),
 
 	// adapter/presenter
 	do.Lazy(presenter.NewInitSettingPresenter),
-	do.Lazy(presenter.NewInitSaveDriveTokenPresenter),
 
 	// adapter/presenter/view
 	do.Lazy(view.NewInitViewProvider),

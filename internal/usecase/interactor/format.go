@@ -2,6 +2,7 @@ package interactor
 
 import (
 	"bytes"
+	"fmt"
 	"time"
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter"
@@ -98,9 +99,15 @@ func (u *formatCommandInteractor) Handle(input *port.FormatCommandUseCaseInputDa
 }
 
 func (u *formatCommandInteractor) fetchFiles() ([]model.Nippo, error) {
+	// Use configured drive folder ID
+	driveFolderId := core.Cfg.Project.DriveFolderId
+	if driveFolderId == "" {
+		return nil, fmt.Errorf("drive folder ID is not configured. Run `nippo init` to configure")
+	}
+
 	// Build query parameters
 	param := &repository.QueryListParam{
-		Folders:        []string{"1HNSRS2tJI2t7DKP_8XQJ2NTleSH-rs4y"},
+		Folders:        []string{driveFolderId},
 		FileExtensions: []string{"md"},
 		OrderBy:        "name",
 	}

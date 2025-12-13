@@ -41,12 +41,18 @@ func (r *assetRepository) CleanBuildCache() error {
 }
 
 func (r *assetRepository) clean(query *i.QueryListParam) error {
+	// Ensure directory exists before listing
+	dir := query.Folders[0]
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
 	files, err := r.provider.List(query)
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		err = os.Remove(filepath.Join(query.Folders[0], file.Name()))
+		err = os.Remove(filepath.Join(dir, file.Name()))
 		if err != nil {
 			return err
 		}

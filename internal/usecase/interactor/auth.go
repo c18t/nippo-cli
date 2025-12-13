@@ -22,22 +22,22 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-type initSaveDriveTokenInteractor struct {
-	presenter presenter.InitSaveDriveTokenPresenter
+type authInteractor struct {
+	presenter presenter.AuthPresenter
 }
 
-func NewInitSaveDriveTokenInteractor(i do.Injector) (port.InitSaveDriveTokenUseCase, error) {
-	p, err := do.Invoke[presenter.InitSaveDriveTokenPresenter](i)
+func NewAuthInteractor(i do.Injector) (port.AuthUseCase, error) {
+	p, err := do.Invoke[presenter.AuthPresenter](i)
 	if err != nil {
 		return nil, err
 	}
-	return &initSaveDriveTokenInteractor{
+	return &authInteractor{
 		presenter: p,
 	}, nil
 }
 
-func (u *initSaveDriveTokenInteractor) Handle(input *port.InitSaveDriveTokenUseCaseInputData) {
-	output := &port.InitSaveDriveTokenUsecaseOutputData{}
+func (u *authInteractor) Handle(input *port.AuthUseCaseInputData) {
+	output := &port.AuthUseCaseOutputData{}
 
 	dataDir := core.Cfg.GetDataDir()
 
@@ -58,7 +58,9 @@ Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
 1. Go to https://console.cloud.google.com/apis/credentials
 2. Create OAuth 2.0 Client ID (Application type: Desktop app)
 3. Download the credentials JSON file
-4. Save it to: %s`, credPath))
+4. Save it to: %s
+
+See: https://github.com/c18t/nippo-cli#setup`, credPath))
 		} else {
 			u.presenter.Suspend(fmt.Errorf("unable to read credentials file: %w", err))
 		}
@@ -71,7 +73,7 @@ Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
 		return
 	}
 
-	tok, err := getTokenFromWeb(oauthConfig, u.presenter, output)
+	tok, err := u.getTokenFromWeb(oauthConfig, output)
 	if err != nil {
 		u.presenter.Suspend(fmt.Errorf("unable to get token from web: %w", err))
 		return
@@ -80,7 +82,7 @@ Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
 	// Save token (spinner continues during save)
 	output.Message = "Saving credentials..."
 	u.presenter.Progress(output)
-	if err := saveToken(filepath.Join(dataDir, "token.json"), tok); err != nil {
+	if err := u.saveToken(filepath.Join(dataDir, "token.json"), tok); err != nil {
 		u.presenter.Suspend(fmt.Errorf("unable to save token: %w", err))
 		return
 	}
@@ -89,8 +91,8 @@ Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
 	u.presenter.Complete(output)
 }
 
-// Saves a token to a file path.
-func saveToken(path string, token *oauth2.Token) error {
+// saveToken saves a token to a file path.
+func (u *authInteractor) saveToken(path string, token *oauth2.Token) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to cache oauth token: %w", err)
@@ -186,8 +188,8 @@ func setupCallbackServer(port int, expectedState string, codeChan chan string, e
 	}
 }
 
-// Request a token from the web, then returns the retrieved token.
-func getTokenFromWeb(config *oauth2.Config, presenter presenter.InitSaveDriveTokenPresenter, output *port.InitSaveDriveTokenUsecaseOutputData) (*oauth2.Token, error) {
+// getTokenFromWeb requests a token from the web, then returns the retrieved token.
+func (u *authInteractor) getTokenFromWeb(config *oauth2.Config, output *port.AuthUseCaseOutputData) (*oauth2.Token, error) {
 	// Try ports 21660-21669 to find an available one
 	const basePort = 21660
 	const maxAttempts = 10
@@ -249,7 +251,7 @@ func getTokenFromWeb(config *oauth2.Config, presenter presenter.InitSaveDriveTok
 
 	// Update spinner message with port number
 	output.Message = fmt.Sprintf("Opening browser for authorization (using port %d)...", actualPort)
-	presenter.Progress(output)
+	u.presenter.Progress(output)
 
 	// Open browser
 	if err := openBrowser(authURL); err != nil {
@@ -276,7 +278,7 @@ func getTokenFromWeb(config *oauth2.Config, presenter presenter.InitSaveDriveTok
 			return nil, fmt.Errorf("authorization timeout (2 minutes)")
 		case <-ticker.C:
 			// Check if user cancelled
-			if presenter.IsCancelled() {
+			if u.presenter.IsCancelled() {
 				return nil, fmt.Errorf("authorization cancelled by user")
 			}
 		}
