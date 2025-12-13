@@ -9,11 +9,21 @@ import (
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-const maxDisplayFiles = 10
+const maxFormatDisplayFiles = 10
 
-type BuildProgressController struct {
+// FormatFileStatus represents the result status of processing a file
+type FormatFileStatus int
+
+const (
+	FormatFileStatusSuccess  FormatFileStatus = iota // Successfully updated
+	FormatFileStatusNoChange                         // No changes needed
+	FormatFileStatusFailed                           // Failed to process/upload
+)
+
+type FormatProgressController struct {
 	program        *tea.Program
 	running        bool
 	cancelled      bool
@@ -23,16 +33,19 @@ type BuildProgressController struct {
 	processedFiles int
 }
 
-type fileInfo struct {
-	name string
-	id   string
+type formatFileInfo struct {
+	name    string
+	id      string
+	status  FormatFileStatus
+	message string
 }
 
-type buildProgressModel struct {
+type formatProgressModel struct {
 	spinner        spinner.Model
 	progress       progress.Model
-	currentFile    fileInfo
-	processedFiles []fileInfo
+	currentFile    string
+	currentFileId  string
+	processedFiles []formatFileInfo
 	totalFiles     int
 	processed      int
 	startTime      time.Time
@@ -41,25 +54,25 @@ type buildProgressModel struct {
 	cancelled      bool
 }
 
-type buildTickMsg time.Time
+type formatTickMsg time.Time
 
-type buildProgressMsg struct {
+type formatProgressMsg struct {
 	filename string
 	fileId   string
+	status   FormatFileStatus
+	message  string
 	total    int
 }
 
-type buildCompleteMsg struct{}
+type formatCompleteMsg struct{}
 
-type buildCancelledMsg struct{}
-
-func NewBuildProgressController() *BuildProgressController {
-	return &BuildProgressController{
+func NewFormatProgressController() *FormatProgressController {
+	return &FormatProgressController{
 		done: make(chan struct{}),
 	}
 }
 
-func (c *BuildProgressController) Start(totalFiles int) {
+func (c *FormatProgressController) Start(totalFiles int) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -80,10 +93,10 @@ func (c *BuildProgressController) Start(totalFiles int) {
 	p := progress.New(progress.WithSolidFill("#6B8E23"))
 	p.Width = 40
 
-	m := buildProgressModel{
+	m := formatProgressModel{
 		spinner:        s,
 		progress:       p,
-		processedFiles: make([]fileInfo, 0, maxDisplayFiles),
+		processedFiles: make([]formatFileInfo, 0, maxFormatDisplayFiles),
 		totalFiles:     totalFiles,
 		startTime:      time.Now(),
 	}
@@ -92,7 +105,7 @@ func (c *BuildProgressController) Start(totalFiles int) {
 
 	go func() {
 		model, _ := c.program.Run()
-		if bm, ok := model.(buildProgressModel); ok && bm.cancelled {
+		if fm, ok := model.(formatProgressModel); ok && fm.cancelled {
 			c.mu.Lock()
 			c.cancelled = true
 			c.mu.Unlock()
@@ -101,7 +114,7 @@ func (c *BuildProgressController) Start(totalFiles int) {
 	}()
 }
 
-func (c *BuildProgressController) UpdateFile(filename string, fileId string) {
+func (c *FormatProgressController) UpdateFile(filename string, fileId string, status FormatFileStatus, message string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -110,14 +123,16 @@ func (c *BuildProgressController) UpdateFile(filename string, fileId string) {
 	}
 
 	c.processedFiles++
-	c.program.Send(buildProgressMsg{
+	c.program.Send(formatProgressMsg{
 		filename: filename,
 		fileId:   fileId,
+		status:   status,
+		message:  message,
 		total:    c.totalFiles,
 	})
 }
 
-func (c *BuildProgressController) Stop() {
+func (c *FormatProgressController) Stop() {
 	c.mu.Lock()
 	if !c.running {
 		c.mu.Unlock()
@@ -129,28 +144,28 @@ func (c *BuildProgressController) Stop() {
 	c.mu.Unlock()
 
 	if program != nil {
-		program.Send(buildCompleteMsg{})
+		program.Send(formatCompleteMsg{})
 		<-done
 	}
 }
 
-func (c *BuildProgressController) IsCancelled() bool {
+func (c *FormatProgressController) IsCancelled() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.cancelled
 }
 
-func buildTickEvery() tea.Cmd {
+func formatTickEvery() tea.Cmd {
 	return tea.Every(time.Second, func(t time.Time) tea.Msg {
-		return buildTickMsg(t)
+		return formatTickMsg(t)
 	})
 }
 
-func (m buildProgressModel) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, buildTickEvery())
+func (m formatProgressModel) Init() tea.Cmd {
+	return tea.Batch(m.spinner.Tick, formatTickEvery())
 }
 
-func (m buildProgressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m formatProgressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -160,25 +175,31 @@ func (m buildProgressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-	case buildProgressMsg:
-		m.currentFile = fileInfo{name: msg.filename, id: msg.fileId}
+	case formatProgressMsg:
+		m.currentFile = msg.filename
+		m.currentFileId = msg.fileId
 		m.processed++
 		m.totalFiles = msg.total
 
-		// Add to processed files list, keeping only last maxDisplayFiles
-		m.processedFiles = append(m.processedFiles, fileInfo{name: msg.filename, id: msg.fileId})
-		if len(m.processedFiles) > maxDisplayFiles {
+		// Add to processed files list, keeping only last maxFormatDisplayFiles
+		m.processedFiles = append(m.processedFiles, formatFileInfo{
+			name:    msg.filename,
+			id:      msg.fileId,
+			status:  msg.status,
+			message: msg.message,
+		})
+		if len(m.processedFiles) > maxFormatDisplayFiles {
 			m.processedFiles = m.processedFiles[1:]
 		}
 		return m, nil
 
-	case buildCompleteMsg:
+	case formatCompleteMsg:
 		m.quitting = true
 		return m, tea.Quit
 
-	case buildTickMsg:
+	case formatTickMsg:
 		m.elapsed = time.Since(m.startTime)
-		return m, buildTickEvery()
+		return m, formatTickEvery()
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -194,7 +215,7 @@ func (m buildProgressModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m buildProgressModel) View() string {
+func (m formatProgressModel) View() string {
 	var b strings.Builder
 
 	// Progress bar
@@ -221,11 +242,11 @@ func (m buildProgressModel) View() string {
 	))
 
 	// Current file with spinner (only when not quitting)
-	if !m.quitting && m.currentFile.name != "" {
+	if !m.quitting && m.currentFile != "" {
 		b.WriteString(fmt.Sprintf("\n  %s %s (%s)\n",
 			m.spinner.View(),
-			InfoStyle.Render(m.currentFile.name),
-			DimStyle.Render(m.currentFile.id),
+			InfoStyle.Render(m.currentFile),
+			DimStyle.Render(m.currentFileId),
 		))
 	}
 
@@ -233,13 +254,27 @@ func (m buildProgressModel) View() string {
 	if len(m.processedFiles) > 0 {
 		b.WriteString("\n" + DimStyle.Render("  Recently processed:") + "\n")
 		for _, file := range m.processedFiles {
-			b.WriteString(fmt.Sprintf("    %s %s (%s)\n",
-				SuccessStyle.Render("✓"),
-				DimStyle.Render(file.name),
-				DimStyle.Render(file.id),
-			))
+			icon, style := getFormatStatusStyle(file.status)
+			line := fmt.Sprintf("    %s %s (%s)", style.Render(icon), DimStyle.Render(file.name), DimStyle.Render(file.id))
+			if file.status == FormatFileStatusFailed && file.message != "" {
+				line += fmt.Sprintf(" - %s", ErrorStyle.Render(file.message))
+			}
+			b.WriteString(line + "\n")
 		}
 	}
 
 	return b.String()
+}
+
+func getFormatStatusStyle(status FormatFileStatus) (string, lipgloss.Style) {
+	switch status {
+	case FormatFileStatusSuccess:
+		return "✓", SuccessStyle
+	case FormatFileStatusNoChange:
+		return "○", DimStyle
+	case FormatFileStatusFailed:
+		return "✗", ErrorStyle
+	default:
+		return "?", DimStyle
+	}
 }

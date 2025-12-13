@@ -93,6 +93,10 @@ func (r *remoteNippoQuery) Download(nippo *model.Nippo) (err error) {
 	return
 }
 
+func (r *remoteNippoQuery) Update(nippo *model.Nippo, content []byte) error {
+	return r.provider.Update(nippo.RemoteFile.Id, content)
+}
+
 func NewLocalNippoQuery(injector do.Injector) (i.LocalNippoQuery, error) {
 	provider, err := do.Invoke[gateway.LocalFileProvider](injector)
 	if err != nil {

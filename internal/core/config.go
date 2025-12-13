@@ -19,6 +19,7 @@ type Config struct {
 	cacheDir  string
 
 	LastUpdateCheckTimestamp time.Time     `mapstructure:"last_update_check_timestamp"`
+	LastFormatTimestamp      time.Time     `mapstructure:"last_format_timestamp"`
 	Project                  ConfigProject `mapstructure:"project"`
 }
 type ConfigProject struct {

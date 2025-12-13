@@ -2,7 +2,8 @@
 
 ## Purpose
 
-TBD - created by archiving change improve-oauth-flow. Update Purpose after archive.
+Define the OAuth authorization flow for Google Drive access, including
+automatic callback handling via local HTTP server and browser integration.
 
 ## Requirements
 

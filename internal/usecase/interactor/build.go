@@ -64,47 +64,63 @@ func NewBuildCommandInteractor(i do.Injector) (port.BuildCommandUseCase, error) 
 }
 
 func (u *buildCommandInteractor) Handle(input *port.BuildCommandUseCaseInputData) {
-	if err := u.downloadNippo(); err != nil {
+	downloadedFiles, err := u.downloadNippo()
+	if err != nil {
 		u.presenter.Suspend(err)
 		return
 	}
+
+	var buildError error
 
 	if err := u.assetRepository.CleanBuildCache(); err != nil {
-		u.presenter.Suspend(err)
-		return
+		buildError = err
 	}
 
-	if err := u.buildIndexPage(); err != nil {
-		u.presenter.Suspend(err)
-		return
+	if buildError == nil {
+		if err := u.buildIndexPage(); err != nil {
+			buildError = err
+		}
 	}
 
-	if err := u.buildNippoPage(); err != nil {
-		u.presenter.Suspend(err)
-		return
+	if buildError == nil {
+		if err := u.buildNippoPage(); err != nil {
+			buildError = err
+		}
 	}
 
-	if err := u.buildArchivePage(); err != nil {
-		u.presenter.Suspend(err)
-		return
+	if buildError == nil {
+		if err := u.buildArchivePage(); err != nil {
+			buildError = err
+		}
 	}
 
-	if err := u.buildFeed(); err != nil {
-		u.presenter.Suspend(err)
-		return
+	if buildError == nil {
+		if err := u.buildFeed(); err != nil {
+			buildError = err
+		}
 	}
 
-	if err := u.buildSiteMap(); err != nil {
-		u.presenter.Suspend(err)
+	if buildError == nil {
+		if err := u.buildSiteMap(); err != nil {
+			buildError = err
+		}
+	}
+
+	// Show summary (downloaded files and any build errors)
+	u.presenter.Summary(downloadedFiles, nil, buildError)
+
+	if buildError != nil {
 		return
 	}
 }
 
-func (u *buildCommandInteractor) downloadNippo() error {
+func (u *buildCommandInteractor) downloadNippo() ([]presenter.FileInfo, error) {
 	// Show spinner while fetching file list
 	u.presenter.Progress(&port.BuildCommandUseCaseOutputData{Message: "Fetching file list from Google Drive..."})
 
 	started := false
+	var downloadedFiles []presenter.FileInfo
+
 	_, err := u.nippoService.Send(&service.NippoFacadeRequest{
 		Action: service.NippoFacadeActionSearch | service.NippoFacadeActionDownload | service.NippoFacadeActionCache,
 		Query: &repository.QueryListParam{
@@ -125,6 +141,7 @@ func (u *buildCommandInteractor) downloadNippo() error {
 				started = true
 			}
 			u.presenter.UpdateBuildProgress(filename, fileId)
+			downloadedFiles = append(downloadedFiles, presenter.FileInfo{Name: filename, Id: fileId})
 			// Return false if user cancelled
 			return !u.presenter.IsBuildCancelled()
 		},
@@ -138,12 +155,12 @@ func (u *buildCommandInteractor) downloadNippo() error {
 	if err != nil {
 		if err == service.ErrCancelled {
 			// User cancelled, exit silently
-			return err
+			return downloadedFiles, err
 		}
-		return err
+		return downloadedFiles, err
 	}
 	core.Cfg.LastUpdateCheckTimestamp = time.Now()
-	return core.Cfg.SaveConfig()
+	return downloadedFiles, core.Cfg.SaveConfig()
 }
 
 type OpenGraph struct {
@@ -320,15 +337,26 @@ func (u *buildCommandInteractor) buildFeed() error {
 			return err
 		}
 
-		feed.Items = append(feed.Items, &feeds.Item{
+		// Use front-matter created time if available, fallback to filename-derived date
+		createdTime := nippo.GetCreatedTime()
+
+		item := &feeds.Item{
 			Title:       nippo.Date.FileString() + " / 日報 - nippo.c18t.net",
 			Link:        &feeds.Link{Href: "https://nippo.c18t.net/" + nippo.Date.PathString()},
 			Id:          "https://nippo.c18t.net/" + nippo.Date.PathString(),
 			Description: "ɯ̹t͡ɕʲi's daily report for " + nippo.Date.FileString() + ".",
 			Author:      author,
-			Created:     time.Date(nippo.Date.Year(), nippo.Date.Month(), nippo.Date.Day(), 0, 0, 0, 0, time.Local),
+			Created:     createdTime,
 			Content:     string(nippoHtml),
-		})
+		}
+
+		// Set updated time if available from front-matter
+		updatedTime := nippo.GetUpdatedTime()
+		if !updatedTime.IsZero() {
+			item.Updated = updatedTime
+		}
+
+		feed.Items = append(feed.Items, item)
 	}
 
 	feed.Sort(func(i, j *feeds.Item) bool {
@@ -344,7 +372,33 @@ func (u *buildCommandInteractor) buildFeed() error {
 }
 
 func (u *buildCommandInteractor) buildSiteMap() error {
+	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
 	outputDir := filepath.Join(core.Cfg.GetCacheDir(), "output")
+
+	// Get nippo list to extract last modified times from front-matter
+	nippoList, err := u.localNippoQuery.List(&repository.QueryListParam{
+		Folders: []string{cacheDir},
+	}, &repository.QueryListOption{
+		WithContent: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Build a map of pathString -> last modified time
+	lastModifiedMap := make(map[string]time.Time)
+	for _, nippo := range nippoList {
+		// GetMarkdown() parses front-matter, so call it to populate FrontMatter
+		_, _ = nippo.GetMarkdown()
+		pathStr := nippo.Date.PathString()
+		updatedTime := nippo.GetUpdatedTime()
+		if !updatedTime.IsZero() {
+			lastModifiedMap[pathStr] = updatedTime
+		} else {
+			// Fallback to created time
+			lastModifiedMap[pathStr] = nippo.GetCreatedTime()
+		}
+	}
 
 	files, err := u.fileProvider.List(&repository.QueryListParam{
 		Folders:        []string{outputDir},
@@ -371,7 +425,12 @@ func (u *buildCommandInteractor) buildSiteMap() error {
 		if fileName == "index" {
 			data.AddItem("https://nippo.c18t.net/", now, "daily", 0.5)
 		} else {
-			data.AddItem("https://nippo.c18t.net/"+fileName, now, "monthly", 0.5)
+			// Use last modified time from front-matter if available
+			lastMod := now
+			if t, ok := lastModifiedMap[fileName]; ok {
+				lastMod = t
+			}
+			data.AddItem("https://nippo.c18t.net/"+fileName, lastMod, "monthly", 0.5)
 		}
 	}
 	if count > 0 {

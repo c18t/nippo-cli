@@ -2,7 +2,8 @@
 
 ## Purpose
 
-TBD - created by archiving change refactor-init-command. Update Purpose after archive.
+Define how nippo-cli manages OAuth credentials files and the data directory
+structure required for Google Drive authentication.
 
 ## Requirements
 

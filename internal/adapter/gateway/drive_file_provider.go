@@ -36,6 +36,7 @@ func (t DriveFileTimestamp) String() string {
 type DriveFileProvider interface {
 	List(param *repository.QueryListParam) (*drive.FileList, error)
 	Download(string) ([]byte, error)
+	Update(fileId string, content []byte) error
 	Shutdown() error
 	HealthCheck() error
 }
@@ -56,7 +57,7 @@ func (g *driveFileProvider) List(param *repository.QueryListParam) (*drive.FileL
 
 	query := g.queryBuilder(param)
 	listCall := fileService.List().
-		Fields("nextPageToken, files(id, name, fileExtension, mimeType)").
+		Fields("nextPageToken, files(id, name, fileExtension, mimeType, createdTime, modifiedTime)").
 		PageSize(100).
 		Q(query)
 	if param.OrderBy != "" {
@@ -90,6 +91,24 @@ func (g *driveFileProvider) Download(id string) ([]byte, error) {
 	return content, nil
 }
 
+func (g *driveFileProvider) Update(fileId string, content []byte) error {
+	fileService, err := g.getFileService()
+	if err != nil {
+		return err
+	}
+
+	// Create a reader from the content
+	reader := strings.NewReader(string(content))
+
+	// Update the file content
+	_, err = fileService.Update(fileId, nil).Media(reader).Do()
+	if err != nil {
+		return fmt.Errorf("unable to update file: %w", err)
+	}
+
+	return nil
+}
+
 func (g *driveFileProvider) getFileService() (*drive.FilesService, error) {
 	if g.fs != nil {
 		return g.fs, nil
@@ -119,7 +138,7 @@ Note: Run 'nippo init' to set up your environment`, credPath)
 		return nil, fmt.Errorf("unable to read credentials file: %w", err)
 	}
 
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveReadonlyScope)
+	config, err := google.ConfigFromJSON(b, drive.DriveScope)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse client secret file to config: %v", err)
 	}

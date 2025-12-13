@@ -2,7 +2,8 @@
 
 ## Purpose
 
-TBD - created by archiving change refactor-init-command. Update Purpose after archive.
+Define the initialization behavior for nippo-cli configuration, including
+directory creation and configuration file management.
 
 ## Requirements
 

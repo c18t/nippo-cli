@@ -26,7 +26,7 @@ type ProgressDoneMsg struct{}
 
 // NewProgressModel creates a new progress bar model
 func NewProgressModel(message string) ProgressModel {
-	p := progress.New(progress.WithDefaultGradient())
+	p := progress.New(progress.WithSolidFill("#6B8E23"))
 	return ProgressModel{
 		progress: p,
 		message:  message,

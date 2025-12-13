@@ -1,11 +1,18 @@
 package presenter
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter/view/tui"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"github.com/samber/do/v2"
+)
+
+// Status icons for build command output
+const (
+	BuildIconSuccess = "✓"
+	BuildIconFailed  = "✗"
 )
 
 type BuildCommandPresenter interface {
@@ -17,6 +24,13 @@ type BuildCommandPresenter interface {
 	UpdateBuildProgress(filename string, fileId string)
 	StopBuildProgress()
 	IsBuildCancelled() bool
+	Summary(downloadedFiles []FileInfo, failedFiles []FileInfo, buildError error)
+}
+
+// FileInfo holds file name and ID for summary display
+type FileInfo struct {
+	Name string
+	Id   string
 }
 
 type buildCommandPresenter struct {
@@ -68,4 +82,42 @@ func (p *buildCommandPresenter) StopBuildProgress() {
 
 func (p *buildCommandPresenter) IsBuildCancelled() bool {
 	return p.buildProgressCtl.IsCancelled()
+}
+
+func (p *buildCommandPresenter) Summary(downloadedFiles []FileInfo, failedFiles []FileInfo, buildError error) {
+	if len(downloadedFiles) > 0 {
+		tui.Println("")
+		tui.Println(tui.SuccessStyle.Render("Downloaded files:"))
+		for _, f := range downloadedFiles {
+			tui.Println(fmt.Sprintf("  %s %s (%s)",
+				tui.SuccessStyle.Render(BuildIconSuccess),
+				f.Name,
+				tui.DimStyle.Render(f.Id),
+			))
+		}
+	}
+
+	if len(failedFiles) > 0 {
+		tui.Println("")
+		tui.Println(tui.ErrorStyle.Render("Failed files:"))
+		for _, f := range failedFiles {
+			tui.Println(fmt.Sprintf("  %s %s (%s)",
+				tui.ErrorStyle.Render(BuildIconFailed),
+				f.Name,
+				tui.DimStyle.Render(f.Id),
+			))
+		}
+	}
+
+	tui.Println("")
+
+	// Show build status
+	if buildError != nil {
+		tui.Println(fmt.Sprintf("Build failed: %s", tui.ErrorStyle.Render(buildError.Error())))
+	} else {
+		tui.Println(fmt.Sprintf("Build complete: %s downloaded, %s failed",
+			tui.SuccessStyle.Render(fmt.Sprintf("%d", len(downloadedFiles))),
+			tui.ErrorStyle.Render(fmt.Sprintf("%d", len(failedFiles))),
+		))
+	}
 }

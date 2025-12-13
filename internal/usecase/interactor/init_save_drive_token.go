@@ -65,7 +65,7 @@ Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
 		return
 	}
 
-	oauthConfig, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveReadonlyScope)
+	oauthConfig, err := google.ConfigFromJSON(b, drive.DriveScope)
 	if err != nil {
 		u.presenter.Suspend(fmt.Errorf("unable to parse client secret file to config: %v", err))
 		return
