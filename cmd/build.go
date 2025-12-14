@@ -5,11 +5,8 @@ This file is part of CLI application nippo-cli.
 package cmd
 
 import (
-	"github.com/c18t/nippo-cli/internal/adapter/controller"
 	"github.com/spf13/cobra"
 )
-
-var build controller.BuildController
 
 // buildCmd represents the build command
 var buildCmd = &cobra.Command{

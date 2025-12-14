@@ -269,6 +269,7 @@ $RECYCLE.BIN/
 
 ## working dir ##
 .claude/settings.local.json
+.lsmcp/cache/
 .playwright-mcp/
 bin/
 dist/

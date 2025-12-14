@@ -4,7 +4,7 @@
 
 [tools]
 # languages
-go = "1.25.4"
+go = "1.25.5"
 node = "25"
 python = "3"
 
@@ -27,6 +27,7 @@ yamllint = "latest"
 "go:github.com/rhysd/actionlint/cmd/actionlint" = "latest"
 "go:github.com/spf13/cobra-cli" = "latest"
 "go:golang.org/x/tools/gopls" = "latest"
+"go:golang.org/x/vuln/cmd/govulncheck" = "latest"
 "go:honnef.co/go/tools/cmd/staticcheck" = "latest"
 
 [tasks.setup]
@@ -94,17 +95,18 @@ alias = "dev-up"
 run = """
 #!/usr/bin/env -S bash -euo pipefail
 if [ "${DEVCONTAINER:-false}" == "true" ]; then
-  mise run dev-up:claude-code-stop-autoupdates
-  mise run dev-up:ccmanager-skip-permissions
+  # mise run dev-up:claude-code-stop-autoupdates
+  mise run dev-up:claude-code-skip-permissions
   mise run dev-up:ccmanager-worktree-settings
-  ccmanager
+  # ccmanager
+  claude
 else
-  ccmanager --devc-up-command 'devcontainer up --workspace-folder .' --devc-exec-command 'devcontainer exec --workspace-folder . -- claude --dangerously-skip-permissions'
+  ccmanager --devc-up-command 'devcontainer up --workspace-folder .' --devc-exec-command 'devcontainer exec --workspace-folder . -- claude'
 fi
 """
 
 [tasks."dev-up:claude-code-stop-autoupdates"]
-description = "Set up Claude Code to disable auto-updates"
+description = "Set up claude code to disable auto-updates"
 run = """
 #!/usr/bin/env -S bash -euo pipefail
 if [ "${DEVCONTAINER:-false}" != "true" ]; then
@@ -117,24 +119,24 @@ if [ ! -e ${SETTING} ]; then
 fi
 TMPFILE=$(mktemp)
 jq '.autoInstallIdeExtension=false|.autoUpdates=false' ${SETTING} > ${TMPFILE} && mv ${TMPFILE} ${SETTING}
-echo 'disabled claude code autoupdates and extension installation'
+echo 'disabled claude code auto-updates and extension installation'
 """
 
-[tasks."dev-up:ccmanager-skip-permissions"]
-description = "Set up ccmanager to skip permissions"
+[tasks."dev-up:claude-code-skip-permissions"]
+description = "Set up claude code to skip permissions"
 run = """
 #!/usr/bin/env -S bash -euo pipefail
 if [ "${DEVCONTAINER:-false}" != "true" ]; then
   echo 'YOU ARE NOT IN DEVCONTAINER. Abort.'
   exit 1
 fi
-SETTING=~/.config/ccmanager/config.json
+SETTING=~/.claude/settings.json
 if [ ! -e ${SETTING} ]; then
-  ccmanager --help 2>&1 >/dev/null
+  claude --help 2>&1 >/dev/null
 fi
 TMPFILE=$(mktemp)
-jq .commandPresets.presets[0].args='["--dangerously-skip-permissions"]' ${SETTING} > ${TMPFILE} && mv ${TMPFILE} ${SETTING}
-echo 'made ccmanager skip permissions'
+jq '.permissions.defaultMode="bypassPermissions"' ${SETTING} > ${TMPFILE} && mv ${TMPFILE} ${SETTING}
+echo 'made claude code skip permissions'
 """
 
 [tasks."dev-up:ccmanager-worktree-settings"]

@@ -1,0 +1,14 @@
+{
+  "b4152d732775b8f4305f720ece89bbfa_0": {
+    "author": "Claude",
+    "comment": "Go 1.22+ resolved range loop variable semantics",
+    "false_positive": true,
+    "ignored_at": "2025-12-13T23:42:08Z"
+  },
+  "b4152d732775b8f4305f720ece89bbfa_1": {
+    "author": "Claude",
+    "comment": "Go 1.22+ resolved range loop variable semantics",
+    "false_positive": true,
+    "ignored_at": "2025-12-13T23:42:15Z"
+  }
+}

@@ -37,6 +37,5 @@ func (c *initController) Params() *InitParams {
 
 func (c *initController) Exec(cmd *cobra.Command, args []string) (err error) {
 	c.bus.Handle(&port.InitSettingUseCaseInputData{})
-	c.bus.Handle(&port.InitSaveDriveTokenUseCaseInputData{})
 	return
 }

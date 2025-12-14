@@ -5,11 +5,11 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"github.com/samber/do/v2"
-	"github.com/spf13/cobra"
 )
 
 type DeployCommandPresenter interface {
 	Progress(output *port.DeployCommandUseCaseOutputData)
+	StopProgress()
 	Complete(output *port.DeployCommandUseCaseOutputData)
 	Suspend(err error)
 }
@@ -19,12 +19,20 @@ type deployCommandPresenter struct {
 }
 
 func NewDeployCommandPresenter(i do.Injector) (DeployCommandPresenter, error) {
-	return &deployCommandPresenter{&consolePresenter{}}, nil
+	base, err := do.Invoke[ConsolePresenter](i)
+	if err != nil {
+		return nil, err
+	}
+	return &deployCommandPresenter{base}, nil
 }
 
 func (p *deployCommandPresenter) Progress(output *port.DeployCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
+}
+
+func (p *deployCommandPresenter) StopProgress() {
+	p.base.StopProgress()
 }
 
 func (p *deployCommandPresenter) Complete(output *port.DeployCommandUseCaseOutputData) {
@@ -33,5 +41,5 @@ func (p *deployCommandPresenter) Complete(output *port.DeployCommandUseCaseOutpu
 }
 
 func (p *deployCommandPresenter) Suspend(err error) {
-	cobra.CheckErr(err)
+	p.base.Suspend(err)
 }

@@ -22,6 +22,7 @@ type QueryListOption struct {
 type RemoteNippoQuery interface {
 	List(param *QueryListParam, option *QueryListOption) ([]model.Nippo, error)
 	Download(nippo *model.Nippo) error
+	Update(nippo *model.Nippo, content []byte) error
 }
 
 type LocalNippoQuery interface {

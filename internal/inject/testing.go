@@ -2,6 +2,7 @@ package inject
 
 import (
 	"github.com/c18t/nippo-cli/internal/adapter/gateway"
+	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/c18t/nippo-cli/internal/domain/service"
@@ -17,6 +18,18 @@ type TestBasePackageOptions struct {
 	// adapter/gateway
 	DriveFileProvider gateway.DriveFileProvider
 	LocalFileProvider gateway.LocalFileProvider
+
+	// adapter/presenter
+	ConsolePresenter       presenter.ConsolePresenter
+	RootCommandPresenter   presenter.RootCommandPresenter
+	CleanCommandPresenter  presenter.CleanCommandPresenter
+	DeployCommandPresenter presenter.DeployCommandPresenter
+	UpdateCommandPresenter presenter.UpdateCommandPresenter
+	AuthPresenter          presenter.AuthPresenter
+	DoctorPresenter        presenter.DoctorPresenter
+	BuildCommandPresenter  presenter.BuildCommandPresenter
+	FormatCommandPresenter presenter.FormatCommandPresenter
+	InitSettingPresenter   presenter.InitSettingPresenter
 
 	// domain/repository
 	RemoteNippoQuery  repository.RemoteNippoQuery
@@ -98,6 +111,67 @@ func NewTestInjector(opts *TestBasePackageOptions) *do.RootScope {
 	if opts.TemplateService != nil {
 		do.Override(injector, func(do.Injector) (service.TemplateService, error) {
 			return opts.TemplateService, nil
+		})
+	}
+
+	// Presenter overrides
+	if opts.ConsolePresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.ConsolePresenter, error) {
+			return opts.ConsolePresenter, nil
+		})
+	}
+
+	if opts.RootCommandPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.RootCommandPresenter, error) {
+			return opts.RootCommandPresenter, nil
+		})
+	}
+
+	if opts.CleanCommandPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.CleanCommandPresenter, error) {
+			return opts.CleanCommandPresenter, nil
+		})
+	}
+
+	if opts.DeployCommandPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.DeployCommandPresenter, error) {
+			return opts.DeployCommandPresenter, nil
+		})
+	}
+
+	if opts.UpdateCommandPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.UpdateCommandPresenter, error) {
+			return opts.UpdateCommandPresenter, nil
+		})
+	}
+
+	if opts.AuthPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.AuthPresenter, error) {
+			return opts.AuthPresenter, nil
+		})
+	}
+
+	if opts.DoctorPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.DoctorPresenter, error) {
+			return opts.DoctorPresenter, nil
+		})
+	}
+
+	if opts.BuildCommandPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.BuildCommandPresenter, error) {
+			return opts.BuildCommandPresenter, nil
+		})
+	}
+
+	if opts.FormatCommandPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.FormatCommandPresenter, error) {
+			return opts.FormatCommandPresenter, nil
+		})
+	}
+
+	if opts.InitSettingPresenter != nil {
+		do.Override(injector, func(do.Injector) (presenter.InitSettingPresenter, error) {
+			return opts.InitSettingPresenter, nil
 		})
 	}
 

@@ -23,6 +23,7 @@ import (
 	"sync"
 
 	"github.com/c18t/nippo-cli/internal/adapter/gateway"
+	"github.com/c18t/nippo-cli/internal/adapter/presenter"
 	"github.com/c18t/nippo-cli/internal/domain/logic/repository"
 	"github.com/c18t/nippo-cli/internal/domain/logic/service"
 	"github.com/samber/do/v2"
@@ -54,6 +55,9 @@ var BasePackage = do.Package(
 	// adapter/gateway
 	do.Lazy(gateway.NewDriveFileProvider),
 	do.Lazy(gateway.NewLocalFileProvider),
+
+	// adapter/presenter
+	do.Lazy(presenter.NewConsolePresenter),
 
 	// domain/repository
 	do.Lazy(repository.NewRemoteNippoQuery),

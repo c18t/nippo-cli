@@ -31,7 +31,7 @@ func NewCleanCommandInteractor(i do.Injector) (port.CleanCommandUseCase, error) 
 func (u *cleanCommandInteractor) Handle(input *port.CleanCommandUseCaseInputData) {
 	output := &port.CleanCommandUseCaseOutputData{}
 
-	output.Message = "cleaning cache files... "
+	output.Message = "cleaning cache files..."
 	u.presenter.Progress(output)
 
 	if err := u.repository.CleanNippoCache(); err != nil {
@@ -50,6 +50,6 @@ func (u *cleanCommandInteractor) Handle(input *port.CleanCommandUseCaseInputData
 		return
 	}
 
-	output.Message = "ok. "
-	u.presenter.Complete(output)
+	// Progress() で開始したスピナーは自動的に "ok." が付く
+	u.presenter.StopProgress()
 }

@@ -22,10 +22,28 @@ var rootCmd = &cobra.Command{
 	Long:  ``,
 }
 
+// commandsWithoutConfig lists commands that can run without a config file
+var commandsWithoutConfig = map[string]bool{
+	"init":    true,
+	"doctor":  true,
+	"help":    true,
+	"version": true,
+	"nippo":   true, // root command (shows help or version)
+}
+
 func init() {
 	rootCmd.RunE = createRootCommand()
 	rootCmd.PreRun = func(cmd *cobra.Command, args []string) {
 		root.Version(Version)
+	}
+
+	// PersistentPreRunE checks if config is required for the command
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		// Skip config check for commands that don't require it
+		if commandsWithoutConfig[cmd.Name()] {
+			return nil
+		}
+		return root.RequireConfig(cmd)
 	}
 
 	cobra.OnInitialize(root.InitConfig)

@@ -5,11 +5,11 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"github.com/samber/do/v2"
-	"github.com/spf13/cobra"
 )
 
 type UpdateCommandPresenter interface {
 	Progress(output *port.UpdateCommandUseCaseOutputData)
+	StopProgress()
 	Complete(output *port.UpdateCommandUseCaseOutputData)
 	Suspend(err error)
 }
@@ -19,12 +19,20 @@ type updateCommandPresenter struct {
 }
 
 func NewUpdateCommandPresenter(i do.Injector) (UpdateCommandPresenter, error) {
-	return &updateCommandPresenter{&consolePresenter{}}, nil
+	base, err := do.Invoke[ConsolePresenter](i)
+	if err != nil {
+		return nil, err
+	}
+	return &updateCommandPresenter{base}, nil
 }
 
 func (p *updateCommandPresenter) Progress(output *port.UpdateCommandUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
 	p.base.Progress(v.String())
+}
+
+func (p *updateCommandPresenter) StopProgress() {
+	p.base.StopProgress()
 }
 
 func (p *updateCommandPresenter) Complete(output *port.UpdateCommandUseCaseOutputData) {
@@ -33,5 +41,5 @@ func (p *updateCommandPresenter) Complete(output *port.UpdateCommandUseCaseOutpu
 }
 
 func (p *updateCommandPresenter) Suspend(err error) {
-	cobra.CheckErr(err)
+	p.base.Suspend(err)
 }

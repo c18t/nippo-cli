@@ -5,7 +5,7 @@ import (
 
 	"github.com/c18t/nippo-cli/internal/domain/model"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
-	i "github.com/c18t/nippo-cli/internal/domain/service"
+	ds "github.com/c18t/nippo-cli/internal/domain/service"
 	"github.com/samber/do/v2"
 )
 
@@ -15,7 +15,7 @@ type nippoFacade struct {
 	localCommand repository.LocalNippoCommand `do:""`
 }
 
-func NewNippoFacade(injector do.Injector) (i.NippoFacade, error) {
+func NewNippoFacade(injector do.Injector) (ds.NippoFacade, error) {
 	remoteQuery, err := do.Invoke[repository.RemoteNippoQuery](injector)
 	if err != nil {
 		return nil, err
@@ -35,20 +35,28 @@ func NewNippoFacade(injector do.Injector) (i.NippoFacade, error) {
 	}, nil
 }
 
-func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeOption) (*i.NippoFacadeReponse, error) {
+func (s *nippoFacade) Send(request *ds.NippoFacadeRequest, option *ds.NippoFacadeOption) (*ds.NippoFacadeReponse, error) {
 	remoteFiles, err := s.remoteQuery.List(request.Query, request.Option)
 	if err != nil {
 		return nil, err
 	}
 
 	nippoList := make([]model.Nippo, len(remoteFiles))
+	total := len(remoteFiles)
 
-	if request.Action&i.NippoFacadeActionDownload != 0 {
+	if request.Action&ds.NippoFacadeActionDownload != 0 {
 		for i, nippo := range remoteFiles {
-			fmt.Printf("%s (%s)\n", nippo.RemoteFile.Name, nippo.RemoteFile.Id)
+			// Report progress via callback if provided
+			if option != nil && option.OnProgress != nil {
+				if !option.OnProgress(nippo.RemoteFile.Name, nippo.RemoteFile.Id, i+1, total) {
+					return nil, ds.ErrCancelled
+				}
+			}
 			err = s.remoteQuery.Download(&nippo)
 			if err != nil {
-				fmt.Printf("download failed: %v\n", err)
+				// Progress callback can handle error display if needed
+				// For now, continue processing other files
+				_ = err
 			}
 			if len(request.Content) <= i {
 				request.Content = append(request.Content, model.Nippo{})
@@ -57,11 +65,12 @@ func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeO
 		}
 	}
 
-	if request.Action&i.NippoFacadeActionCache != 0 {
+	if request.Action&ds.NippoFacadeActionCache != 0 {
 		for i, nippo := range request.Content {
 			err = s.localCommand.Create(&nippo)
 			if err != nil {
-				fmt.Printf("cache failed: %v\n", err)
+				// Continue processing other files on cache error
+				_ = err
 			}
 			nippoList[i] = nippo
 		}
@@ -70,8 +79,8 @@ func (s *nippoFacade) Send(request *i.NippoFacadeRequest, option *i.NippoFacadeO
 	}
 
 	count := len(nippoList)
-	return &i.NippoFacadeReponse{
-		Result: &i.NippoFacadeResponseResult{
+	return &ds.NippoFacadeReponse{
+		Result: &ds.NippoFacadeResponseResult{
 			Action:  request.Action,
 			Count:   count,
 			Message: fmt.Sprintf("%d files downloaded.", len(nippoList)),

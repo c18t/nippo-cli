@@ -26,8 +26,39 @@ repos:
     hooks:
       - id: script-must-have-extension
 
+  - repo: https://github.com/hadolint/hadolint
+    rev: 'v2.14.0'
+    hooks:
+      - id: hadolint
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.9
+    hooks:
+      - id: actionlint-system
+
   - repo: https://github.com/golangci/golangci-lint
     rev: v2.6.2
     hooks:
       # - id: golangci-lint-config-verify
       - id: golangci-lint
+
+  - repo: local
+    hooks:
+      - id: go-test-short
+        name: go-test-short
+        entry: go test ./... -v -short
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: govulncheck-lcoal
+        name: govulncheck-local
+        entry: govulncheck ./...
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: bearer-local
+        name: bearer-local
+        entry: bearer scan .
+        language: system
+        pass_filenames: false
+        always_run: true

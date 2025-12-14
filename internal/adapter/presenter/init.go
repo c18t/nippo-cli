@@ -1,26 +1,24 @@
 package presenter
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/c18t/nippo-cli/internal/adapter/presenter/view"
+	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/usecase/port"
 	"github.com/samber/do/v2"
-	"github.com/spf13/cobra"
 )
 
 type InitCommandPresenter interface {
 	Progress(output port.InitUseCaseOutputData)
+	StopProgress()
 	Complete(output port.InitUseCaseOutputData)
 	Suspend(err error)
+	IsCancelled() bool
 }
 type InitSettingPresenter interface {
 	InitCommandPresenter
 	Prompt(ch chan<- interface{}, output *port.InitSettingUseCaseOutputData)
-}
-type InitSaveDriveTokenPresenter interface {
-	InitCommandPresenter
 }
 
 type initCommandPresenter struct {
@@ -29,58 +27,78 @@ type initCommandPresenter struct {
 }
 
 func NewInitSettingPresenter(i do.Injector) (InitSettingPresenter, error) {
+	base, err := do.Invoke[ConsolePresenter](i)
+	if err != nil {
+		return nil, err
+	}
 	viewProvider, err := do.Invoke[view.InitViewProvider](i)
 	if err != nil {
 		return nil, err
 	}
 	return &initCommandPresenter{
-		&consolePresenter{},
-		viewProvider,
-	}, nil
-}
-
-func NewInitSaveDriveTokenPresenter(i do.Injector) (InitSaveDriveTokenPresenter, error) {
-	viewProvider, err := do.Invoke[view.InitViewProvider](i)
-	if err != nil {
-		return nil, err
-	}
-	return &initCommandPresenter{
-		&consolePresenter{},
+		base,
 		viewProvider,
 	}, nil
 }
 
 func (p *initCommandPresenter) Prompt(ch chan<- interface{}, output *port.InitSettingUseCaseOutputData) {
-	switch output.Input.(type) {
-	case port.InitSettingProjectUrl:
-		vm := &view.ConfigureProjectViewModel{Sequence: view.ConfigureProjectSequence_InputProjectUrl}
-		vm.Input = ch
-		p.viewProvider.Handle(vm)
-	case port.InitSettingProjectTemplatePath:
-		vm := &view.ConfigureProjectViewModel{Sequence: view.ConfigureProjectSequence_SelectTemplatePath}
-		vm.Input = ch
-		p.viewProvider.Handle(vm)
-	case port.InitSettingProjectAssetPath:
-		vm := &view.ConfigureProjectViewModel{Sequence: view.ConfigureProjectSequence_SelectAssetPath}
-		vm.Input = ch
-		p.viewProvider.Handle(vm)
+	vm := &view.ConfigureProjectViewModel{}
+	vm.Input = ch
+
+	// Populate default values from existing config if available
+	if core.Cfg != nil {
+		vm.DefaultValues = []string{
+			core.Cfg.Project.DriveFolderId,
+			core.Cfg.Project.SiteUrl,
+			core.Cfg.Project.Url,
+			core.Cfg.Project.Branch,
+			core.Cfg.Project.TemplatePath,
+			core.Cfg.Project.AssetPath,
+		}
 	}
+
+	switch output.Input.(type) {
+	case port.InitSettingConfirmOverwrite:
+		vm.Sequence = view.ConfigureProjectSequence_ConfirmOverwrite
+		vm.ConfigExists = true
+	case port.InitSettingProjectDriveFolder:
+		vm.Sequence = view.ConfigureProjectSequence_InputDriveFolder
+	case port.InitSettingProjectSiteUrl:
+		vm.Sequence = view.ConfigureProjectSequence_InputSiteUrl
+	case port.InitSettingProjectUrl:
+		vm.Sequence = view.ConfigureProjectSequence_InputProjectUrl
+	case port.InitSettingProjectBranch:
+		vm.Sequence = view.ConfigureProjectSequence_InputBranch
+	case port.InitSettingProjectTemplatePath:
+		vm.Sequence = view.ConfigureProjectSequence_SelectTemplatePath
+	case port.InitSettingProjectAssetPath:
+		vm.Sequence = view.ConfigureProjectSequence_SelectAssetPath
+	case port.InitSettingConfirmGitWarning:
+		vm.Sequence = view.ConfigureProjectSequence_ConfirmGitWarning
+		vm.IsUnderGit = true
+	}
+
+	p.viewProvider.Handle(vm)
 }
 
 func (p *initCommandPresenter) Progress(output port.InitUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
-	vm := &view.ConfigureProjectViewModel{}
-	vm.Output = fmt.Sprint(v.String())
-	p.viewProvider.Handle(vm)
+	p.base.Progress(v.String())
+}
+
+func (p *initCommandPresenter) StopProgress() {
+	p.base.StopProgress()
 }
 
 func (p *initCommandPresenter) Complete(output port.InitUseCaseOutputData) {
 	v := reflect.Indirect(reflect.ValueOf(output)).FieldByName("Message")
-	vm := &view.ConfigureProjectViewModel{}
-	vm.Output = fmt.Sprintln(v.String())
-	p.viewProvider.Handle(vm)
+	p.base.Complete(v.String())
 }
 
 func (p *initCommandPresenter) Suspend(err error) {
-	cobra.CheckErr(err)
+	p.base.Suspend(err)
+}
+
+func (p *initCommandPresenter) IsCancelled() bool {
+	return p.base.IsCancelled()
 }

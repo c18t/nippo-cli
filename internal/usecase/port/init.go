@@ -30,37 +30,34 @@ type InitSettingUseCaseOutputData struct {
 	ProjectConfigured bool
 }
 type InitSettingProject struct {
+	DriveFolder  InitSettingProjectDriveFolder
+	SiteUrl      InitSettingProjectSiteUrl
 	Url          InitSettingProjectUrl
+	Branch       InitSettingProjectBranch
 	TemplatePath InitSettingProjectTemplatePath
 	AssetPath    InitSettingProjectAssetPath
 }
+type InitSettingProjectDriveFolder string
+type InitSettingProjectSiteUrl string
 type InitSettingProjectUrl string
+type InitSettingProjectBranch string
 type InitSettingProjectTemplatePath string
 type InitSettingProjectAssetPath string
 
-type InitSaveDriveTokenUseCaseInputData struct {
-	InitUseCaseInputData
-}
-type InitSaveDriveTokenUsecaseOutputData struct {
-	InitUsecaseOutputDataImpl
-}
+// Confirmation prompts
+type InitSettingConfirmOverwrite bool
+type InitSettingConfirmGitWarning bool
 
 type InitSettingUseCase interface {
 	core.UseCase
 	Handle(input *InitSettingUseCaseInputData)
 }
 
-type InitSaveDriveTokenUseCase interface {
-	core.UseCase
-	Handle(input *InitSaveDriveTokenUseCaseInputData)
-}
-
 type InitUseCaseBus interface {
 	Handle(input InitUseCaseInputData)
 }
 type initUseCaseBus struct {
-	configure      InitSettingUseCase        `do:""`
-	saveDriveToken InitSaveDriveTokenUseCase `do:""`
+	configure InitSettingUseCase `do:""`
 }
 
 func NewInitUseCaseBus(i do.Injector) (InitUseCaseBus, error) {
@@ -68,13 +65,8 @@ func NewInitUseCaseBus(i do.Injector) (InitUseCaseBus, error) {
 	if err != nil {
 		return nil, err
 	}
-	saveDriveToken, err := do.Invoke[InitSaveDriveTokenUseCase](i)
-	if err != nil {
-		return nil, err
-	}
 	return &initUseCaseBus{
-		configure:      configure,
-		saveDriveToken: saveDriveToken,
+		configure: configure,
 	}, nil
 }
 
@@ -82,8 +74,6 @@ func (bus *initUseCaseBus) Handle(input InitUseCaseInputData) {
 	switch data := input.(type) {
 	case *InitSettingUseCaseInputData:
 		bus.configure.Handle(data)
-	case *InitSaveDriveTokenUseCaseInputData:
-		bus.saveDriveToken.Handle(data)
 	default:
 		panic(fmt.Errorf("handler for '%T' is not implemented", data))
 	}

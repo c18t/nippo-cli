@@ -6,15 +6,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/c18t/nippo-cli/internal/core"
 	"github.com/c18t/nippo-cli/internal/domain/repository"
 	"github.com/samber/do/v2"
 )
 
 type LocalFileProvider interface {
 	List(param *repository.QueryListParam) ([]os.DirEntry, error)
-	Read(filePath string) ([]byte, error)
+	Read(baseDir, filePath string) ([]byte, error)
 	Write(filePath string, content []byte) error
-	Copy(destPath string, srcPath string) error
+	Copy(baseDir, destPath, srcPath string) error
 }
 
 type localFileProvider struct {
@@ -55,20 +56,20 @@ func (g *localFileProvider) List(param *repository.QueryListParam) ([]os.DirEntr
 	return fileList, nil
 }
 
-func (g *localFileProvider) Read(filePath string) (content []byte, err error) {
-	file, err := os.Open(filePath)
+func (g *localFileProvider) Read(baseDir, filePath string) (content []byte, err error) {
+	file, err := core.SafeOpen(baseDir, filePath)
 	if err != nil {
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	_, err = file.Read(content)
 	return
 }
 
-func (g *localFileProvider) Write(filePath string, content []byte) error {
+func (g *localFileProvider) Write(filePath string, content []byte) (err error) {
 	outDir := filepath.Dir(filePath)
-	err := os.MkdirAll(outDir, 0755)
+	err = os.MkdirAll(outDir, 0755)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
@@ -77,18 +78,19 @@ func (g *localFileProvider) Write(filePath string, content []byte) error {
 	if err != nil {
 		return err
 	}
-	defer dest.Close()
+	defer func() {
+		if cerr := dest.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	_, err = dest.Write(content)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
-func (g *localFileProvider) Copy(destPath string, srcPath string) error {
+func (g *localFileProvider) Copy(baseDir, destPath, srcPath string) (err error) {
 	outDir := filepath.Dir(destPath)
-	err := os.MkdirAll(outDir, 0755)
+	err = os.MkdirAll(outDir, 0755)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
@@ -97,17 +99,18 @@ func (g *localFileProvider) Copy(destPath string, srcPath string) error {
 	if err != nil {
 		return err
 	}
-	defer dest.Close()
+	defer func() {
+		if cerr := dest.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
-	src, err := os.Open(srcPath)
+	src, err := core.SafeOpen(baseDir, srcPath)
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	_, err = io.Copy(dest, src)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

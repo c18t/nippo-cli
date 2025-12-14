@@ -1,6 +1,4 @@
-# Change: Refactor DI implementation with lazy initialization, scope isolation, and
-
-proper error handling
+# Change: Refactor DI implementation
 
 ## Why
 

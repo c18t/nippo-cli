@@ -36,6 +36,7 @@ func (t DriveFileTimestamp) String() string {
 type DriveFileProvider interface {
 	List(param *repository.QueryListParam) (*drive.FileList, error)
 	Download(string) ([]byte, error)
+	Update(fileId string, content []byte) error
 	Shutdown() error
 	HealthCheck() error
 }
@@ -56,7 +57,7 @@ func (g *driveFileProvider) List(param *repository.QueryListParam) (*drive.FileL
 
 	query := g.queryBuilder(param)
 	listCall := fileService.List().
-		Fields("nextPageToken, files(id, name, fileExtension, mimeType)").
+		Fields("nextPageToken, files(id, name, fileExtension, mimeType, createdTime, modifiedTime)").
 		PageSize(100).
 		Q(query)
 	if param.OrderBy != "" {
@@ -90,23 +91,54 @@ func (g *driveFileProvider) Download(id string) ([]byte, error) {
 	return content, nil
 }
 
+func (g *driveFileProvider) Update(fileId string, content []byte) error {
+	fileService, err := g.getFileService()
+	if err != nil {
+		return err
+	}
+
+	// Create a reader from the content
+	reader := strings.NewReader(string(content))
+
+	// Update the file content
+	_, err = fileService.Update(fileId, nil).Media(reader).Do()
+	if err != nil {
+		return fmt.Errorf("unable to update file: %w", err)
+	}
+
+	return nil
+}
+
 func (g *driveFileProvider) getFileService() (*drive.FilesService, error) {
 	if g.fs != nil {
 		return g.fs, nil
 	}
 
 	dataDir := core.Cfg.GetDataDir()
-	tok, err := g.tokenFromFile(filepath.Join(dataDir, "token.json"))
+	tok, err := g.tokenFromFile(dataDir, filepath.Join(dataDir, "token.json"))
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := os.ReadFile(filepath.Join(dataDir, "credentials.json"))
+	credPath := filepath.Join(dataDir, "credentials.json")
+	b, err := os.ReadFile(credPath)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read client secret file: %v", err)
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf(`credentials.json not found
+
+Please download the OAuth 2.0 Client ID credentials from Google Cloud Console:
+
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Create OAuth 2.0 Client ID (Application type: Desktop app)
+3. Download the credentials JSON file
+4. Save it to: %s
+
+Note: Run 'nippo init' to set up your environment`, credPath)
+		}
+		return nil, fmt.Errorf("unable to read credentials file: %w", err)
 	}
 
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveReadonlyScope)
+	config, err := google.ConfigFromJSON(b, drive.DriveScope)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse client secret file to config: %v", err)
 	}
@@ -144,8 +176,8 @@ func (g *driveFileProvider) HealthCheck() error {
 }
 
 // Retrieves a token from a local file.
-func (g *driveFileProvider) tokenFromFile(file string) (*oauth2.Token, error) {
-	f, err := os.Open(file)
+func (g *driveFileProvider) tokenFromFile(baseDir, file string) (*oauth2.Token, error) {
+	f, err := core.SafeOpen(baseDir, file)
 	if err != nil {
 		return nil, err
 	}

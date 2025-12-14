@@ -80,7 +80,7 @@ func (r *remoteNippoQuery) list(param *i.QueryListParam, option *i.QueryListOpti
 			nippo.Date = model.NewNippoDate(file.Name)
 			nippo.RemoteFile = file
 			if option.WithContent {
-				r.Download(nippo)
+				_ = r.Download(nippo)
 			}
 			nippoList = append(nippoList, *nippo)
 		}
@@ -91,6 +91,10 @@ func (r *remoteNippoQuery) list(param *i.QueryListParam, option *i.QueryListOpti
 func (r *remoteNippoQuery) Download(nippo *model.Nippo) (err error) {
 	nippo.Content, err = r.provider.Download(nippo.RemoteFile.Id)
 	return
+}
+
+func (r *remoteNippoQuery) Update(nippo *model.Nippo, content []byte) error {
+	return r.provider.Update(nippo.RemoteFile.Id, content)
 }
 
 func NewLocalNippoQuery(injector do.Injector) (i.LocalNippoQuery, error) {
@@ -131,7 +135,7 @@ func (r *localNippoQuery) List(param *i.QueryListParam, option *i.QueryListOptio
 				return nil, err
 			}
 			if option.WithContent {
-				r.Load(nippo)
+				_ = r.Load(nippo)
 			}
 			nippoList = append(nippoList, *nippo)
 		}
@@ -140,7 +144,8 @@ func (r *localNippoQuery) List(param *i.QueryListParam, option *i.QueryListOptio
 }
 
 func (r *localNippoQuery) Load(nippo *model.Nippo) (err error) {
-	nippo.Content, err = r.provider.Read(nippo.FilePath)
+	cacheDir := core.Cfg.GetCacheDir()
+	nippo.Content, err = r.provider.Read(cacheDir, nippo.FilePath)
 	return
 }
 
@@ -158,9 +163,9 @@ func NewLocalNippoCommand(injector do.Injector) (i.LocalNippoCommand, error) {
 	}, nil
 }
 
-func (r *localNippoCommand) Create(nippo *model.Nippo) error {
+func (r *localNippoCommand) Create(nippo *model.Nippo) (err error) {
 	cacheDir := filepath.Join(core.Cfg.GetCacheDir(), "md")
-	err := os.MkdirAll(cacheDir, 0755)
+	err = os.MkdirAll(cacheDir, 0755)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
@@ -169,7 +174,11 @@ func (r *localNippoCommand) Create(nippo *model.Nippo) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	_, err = f.Write(nippo.Content)
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/c18t/nippo-cli/internal/core"
@@ -21,12 +22,15 @@ type RootController interface {
 	Version(...string) string
 
 	InitConfig()
+	InitConfigErr() error
+	RequireConfig(cmd *cobra.Command) error
 }
 
 type rootController struct {
-	bus     port.RootUseCaseBus
-	params  *RootParams
-	verison string
+	bus           port.RootUseCaseBus
+	params        *RootParams
+	verison       string
+	initConfigErr error
 }
 
 func NewRootController(i do.Injector) (RootController, error) {
@@ -52,9 +56,31 @@ func (c *rootController) Params() *RootParams {
 }
 
 // initConfig reads in config file and ENV variables if set.
+// Errors are stored and can be checked later with InitConfigErr().
 func (c *rootController) InitConfig() {
-	err := core.InitConfig(c.params.ConfigFile)
-	cobra.CheckErr(err)
+	c.initConfigErr = core.InitConfig(c.params.ConfigFile)
+	// Don't fail here - let individual commands decide how to handle
+}
+
+// InitConfigErr returns the error from InitConfig, if any.
+func (c *rootController) InitConfigErr() error {
+	return c.initConfigErr
+}
+
+// RequireConfig checks if the configuration was loaded successfully.
+// Commands that require a config file should call this in PreRunE.
+// Returns nil if config was loaded, or an error with instructions.
+func (c *rootController) RequireConfig(cmd *cobra.Command) error {
+	if c.initConfigErr == nil {
+		return nil
+	}
+
+	var configNotFound *core.ErrConfigNotFound
+	if errors.As(c.initConfigErr, &configNotFound) {
+		return fmt.Errorf("configuration not found. Please run `nippo init` first")
+	}
+
+	return c.initConfigErr
 }
 
 func (c *rootController) Exec(cmd *cobra.Command, args []string) (err error) {
