@@ -161,6 +161,12 @@ func TestResolvePath(t *testing.T) {
 			baseDir:  "/base",
 			expected: filepath.Join(homeDir, "mydir"),
 		},
+		{
+			name:     "empty path",
+			path:     "",
+			baseDir:  "/base",
+			expected: "",
+		},
 	}
 
 	for _, tt := range tests {
@@ -168,6 +174,227 @@ func TestResolvePath(t *testing.T) {
 			result := ResolvePath(tt.path, tt.baseDir)
 			if result != tt.expected {
 				t.Errorf("ResolvePath(%q, %q) = %q, want %q", tt.path, tt.baseDir, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestExpandPath_TildeOnly(t *testing.T) {
+	homeDir := os.Getenv("HOME")
+	result := ExpandPath("~")
+	if result != homeDir {
+		t.Errorf("ExpandPath(\"~\") = %q, want %q", result, homeDir)
+	}
+}
+
+func TestExpandPath_EmptyPath(t *testing.T) {
+	result := ExpandPath("")
+	if result != "" {
+		t.Errorf("ExpandPath(\"\") = %q, want %q", result, "")
+	}
+}
+
+func TestResolveConfigDir(t *testing.T) {
+	tests := []struct {
+		name     string
+		envVars  map[string]string
+		contains string
+	}{
+		{
+			name: "XDG_CONFIG_HOME set",
+			envVars: map[string]string{
+				"XDG_CONFIG_HOME": "/xdg/config",
+			},
+			contains: "nippo",
+		},
+		{
+			name: "fallback to default",
+			envVars: map[string]string{
+				"XDG_CONFIG_HOME": "",
+			},
+			contains: "nippo",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
+			}
+
+			result := ResolveConfigDir()
+			if result == "" {
+				t.Error("ResolveConfigDir() should return non-empty path")
+			}
+			if !filepath.IsAbs(result) {
+				t.Errorf("ResolveConfigDir() = %q, should be absolute path", result)
+			}
+		})
+	}
+}
+
+func TestResolveDataDir(t *testing.T) {
+	tests := []struct {
+		name     string
+		envVars  map[string]string
+		contains string
+	}{
+		{
+			name: "XDG_DATA_HOME set",
+			envVars: map[string]string{
+				"XDG_DATA_HOME": "/xdg/data",
+			},
+			contains: "nippo",
+		},
+		{
+			name: "fallback to default",
+			envVars: map[string]string{
+				"XDG_DATA_HOME": "",
+			},
+			contains: "nippo",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
+			}
+
+			result := ResolveDataDir()
+			if result == "" {
+				t.Error("ResolveDataDir() should return non-empty path")
+			}
+		})
+	}
+}
+
+func TestResolveCacheDir(t *testing.T) {
+	tests := []struct {
+		name    string
+		envVars map[string]string
+	}{
+		{
+			name: "XDG_CACHE_HOME set",
+			envVars: map[string]string{
+				"XDG_CACHE_HOME": "/xdg/cache",
+			},
+		},
+		{
+			name: "fallback to default",
+			envVars: map[string]string{
+				"XDG_CACHE_HOME": "",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
+			}
+
+			result := ResolveCacheDir()
+			if result == "" {
+				t.Error("ResolveCacheDir() should return non-empty path")
+			}
+		})
+	}
+}
+
+func TestSafeOpen(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "paths_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	// Create a test file
+	testFile := filepath.Join(tmpDir, "test.txt")
+	if err := os.WriteFile(testFile, []byte("test content"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name      string
+		basePath  string
+		filePath  string
+		expectErr bool
+	}{
+		{
+			name:      "safe path",
+			basePath:  tmpDir,
+			filePath:  testFile,
+			expectErr: false,
+		},
+		{
+			name:      "path traversal attack",
+			basePath:  tmpDir,
+			filePath:  filepath.Join(tmpDir, "..", "outside.txt"),
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := SafeOpen(tt.basePath, tt.filePath)
+			if tt.expectErr {
+				if err == nil {
+					t.Error("SafeOpen() should return error for unsafe path")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("SafeOpen() error = %v", err)
+				}
+				if f != nil {
+					_ = f.Close()
+				}
+			}
+		})
+	}
+}
+
+func TestSafeOpenFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "paths_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	tests := []struct {
+		name      string
+		basePath  string
+		filePath  string
+		expectErr bool
+	}{
+		{
+			name:      "safe path for new file",
+			basePath:  tmpDir,
+			filePath:  filepath.Join(tmpDir, "newfile.txt"),
+			expectErr: false,
+		},
+		{
+			name:      "path traversal attack",
+			basePath:  tmpDir,
+			filePath:  filepath.Join(tmpDir, "..", "outside.txt"),
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := SafeOpenFile(tt.basePath, tt.filePath, os.O_CREATE|os.O_WRONLY, 0644)
+			if tt.expectErr {
+				if err == nil {
+					t.Error("SafeOpenFile() should return error for unsafe path")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("SafeOpenFile() error = %v", err)
+				}
+				if f != nil {
+					_ = f.Close()
+				}
 			}
 		})
 	}

@@ -438,3 +438,186 @@ func TestRFC3339DateValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestNewNippoDate(t *testing.T) {
+	date := NewNippoDate("2024-03-15.md")
+
+	if date.Year() != 2024 {
+		t.Errorf("Year() = %v, want 2024", date.Year())
+	}
+	if date.Month() != time.March {
+		t.Errorf("Month() = %v, want March", date.Month())
+	}
+	if date.Day() != 15 {
+		t.Errorf("Day() = %v, want 15", date.Day())
+	}
+	if date.Weekday() != time.Friday {
+		t.Errorf("Weekday() = %v, want Friday", date.Weekday())
+	}
+}
+
+func TestNippoDate_StringMethods(t *testing.T) {
+	date := NewNippoDate("2024-01-05.md")
+
+	tests := []struct {
+		name     string
+		method   func() string
+		expected string
+	}{
+		{
+			name:     "FileString",
+			method:   date.FileString,
+			expected: "2024-01-05",
+		},
+		{
+			name:     "PathString",
+			method:   date.PathString,
+			expected: "20240105",
+		},
+		{
+			name:     "TitleString",
+			method:   date.TitleString,
+			expected: "01/05 fri",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.method()
+			if result != tt.expected {
+				t.Errorf("%s() = %q, want %q", tt.name, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestNippo_GetCreatedTime(t *testing.T) {
+	date := NewNippoDate("2024-01-15.md")
+	created := time.Date(2024, 1, 15, 9, 30, 0, 0, time.FixedZone("JST", 9*60*60))
+
+	tests := []struct {
+		name        string
+		nippo       *Nippo
+		expectZero  bool
+		expectEqual time.Time
+	}{
+		{
+			name: "with front-matter created",
+			nippo: &Nippo{
+				Date: date,
+				FrontMatter: &FrontMatter{
+					Created: created,
+				},
+			},
+			expectEqual: created,
+		},
+		{
+			name: "without front-matter",
+			nippo: &Nippo{
+				Date: date,
+			},
+			expectZero: false,
+		},
+		{
+			name: "with empty front-matter",
+			nippo: &Nippo{
+				Date:        date,
+				FrontMatter: &FrontMatter{},
+			},
+			expectZero: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.nippo.GetCreatedTime()
+			if !tt.expectEqual.IsZero() {
+				if !result.Equal(tt.expectEqual) {
+					t.Errorf("GetCreatedTime() = %v, want %v", result, tt.expectEqual)
+				}
+			} else if tt.expectZero && !result.IsZero() {
+				t.Errorf("GetCreatedTime() = %v, want zero time", result)
+			}
+		})
+	}
+}
+
+func TestNippo_GetUpdatedTime(t *testing.T) {
+	date := NewNippoDate("2024-01-15.md")
+	updated := time.Date(2024, 1, 16, 10, 0, 0, 0, time.FixedZone("JST", 9*60*60))
+
+	tests := []struct {
+		name        string
+		nippo       *Nippo
+		expectZero  bool
+		expectEqual time.Time
+	}{
+		{
+			name: "with front-matter updated",
+			nippo: &Nippo{
+				Date: date,
+				FrontMatter: &FrontMatter{
+					Updated: updated,
+				},
+			},
+			expectEqual: updated,
+		},
+		{
+			name: "without front-matter",
+			nippo: &Nippo{
+				Date: date,
+			},
+			expectZero: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.nippo.GetUpdatedTime()
+			if !tt.expectEqual.IsZero() {
+				if !result.Equal(tt.expectEqual) {
+					t.Errorf("GetUpdatedTime() = %v, want %v", result, tt.expectEqual)
+				}
+			} else if tt.expectZero && !result.IsZero() {
+				t.Errorf("GetUpdatedTime() = %v, want zero time", result)
+			}
+		})
+	}
+}
+
+func TestNippo_GetMarkdown_WithContent(t *testing.T) {
+	content := []byte("---\ncreated: 2024-01-15T09:30:00+09:00\n---\n# My Content")
+	nippo := &Nippo{
+		Date:    NewNippoDate("2024-01-15.md"),
+		Content: content,
+	}
+
+	md, err := nippo.GetMarkdown()
+	if err != nil {
+		t.Fatalf("GetMarkdown() error = %v", err)
+	}
+
+	expected := "# My Content"
+	if string(md) != expected {
+		t.Errorf("GetMarkdown() = %q, want %q", string(md), expected)
+	}
+}
+
+func TestNippo_GetMarkdown_MalformedFrontMatter(t *testing.T) {
+	// Malformed front-matter should return content as-is with warning
+	content := []byte("---\n: invalid yaml\n---\n# Content")
+	nippo := &Nippo{
+		Date:    NewNippoDate("2024-01-15.md"),
+		Content: content,
+	}
+
+	md, err := nippo.GetMarkdown()
+	if err != nil {
+		t.Fatalf("GetMarkdown() error = %v", err)
+	}
+
+	// Should return original content on parse error
+	if string(md) != string(content) {
+		t.Errorf("GetMarkdown() = %q, want %q", string(md), string(content))
+	}
+}

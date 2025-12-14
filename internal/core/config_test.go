@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/spf13/viper"
 )
 
 func TestConfig_GetDataDir(t *testing.T) {
@@ -270,5 +272,103 @@ func TestConfig_EnvironmentVariableExpansion(t *testing.T) {
 	expected := "/expanded/path/data"
 	if result != expected {
 		t.Errorf("GetDataDir() with env var = %q, want %q", result, expected)
+	}
+}
+
+func TestConfig_ResetLastUpdateCheckTimestamp(t *testing.T) {
+	cfg := &Config{}
+	cfg.LastUpdateCheckTimestamp = cfg.getDefaultLastUpdateCheckTimestamp().Add(24 * 60 * 60 * 1000000000)
+
+	cfg.ResetLastUpdateCheckTimestamp()
+
+	expected := cfg.getDefaultLastUpdateCheckTimestamp()
+	if !cfg.LastUpdateCheckTimestamp.Equal(expected) {
+		t.Errorf("ResetLastUpdateCheckTimestamp() = %v, want %v", cfg.LastUpdateCheckTimestamp, expected)
+	}
+}
+
+func TestConfig_SaveConfig(t *testing.T) {
+	// Reset viper state before and after test
+	defer func() {
+		viper.Reset()
+	}()
+	viper.Reset()
+
+	tmpDir, err := os.MkdirTemp("", "config_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	// Create a config file first
+	configPath := filepath.Join(tmpDir, "nippo.toml")
+	configContent := `[project]
+url = "https://github.com/c18t/nippo"
+`
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &Config{
+		configDir: tmpDir,
+		Project: ConfigProject{
+			Url:           "https://github.com/test/nippo",
+			DriveFolderId: "test-folder",
+			SiteUrl:       "https://test.example.com",
+		},
+	}
+
+	// Load config first to set viper config file
+	err = cfg.LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	// Update config
+	cfg.Project.Url = "https://github.com/updated/nippo"
+
+	err = cfg.SaveConfig()
+	if err != nil {
+		t.Errorf("SaveConfig() error = %v", err)
+	}
+
+	// Verify file was created
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		t.Error("SaveConfig() did not create config file")
+	}
+}
+
+func TestConfig_configFieldMap(t *testing.T) {
+	cfg := &Config{
+		Project: ConfigProject{
+			Url:           "https://github.com/test/nippo",
+			DriveFolderId: "test-folder",
+		},
+		Paths: ConfigPaths{
+			DataDir:  "/data",
+			CacheDir: "/cache",
+		},
+	}
+
+	cMap, err := cfg.configFieldMap(map[string]any{}, *cfg, "")
+	if err != nil {
+		t.Errorf("configFieldMap() error = %v", err)
+	}
+
+	if cMap["project.url"] != "https://github.com/test/nippo" {
+		t.Errorf("configFieldMap() project.url = %v, want %v", cMap["project.url"], "https://github.com/test/nippo")
+	}
+	if cMap["project.drive_folder_id"] != "test-folder" {
+		t.Errorf("configFieldMap() project.drive_folder_id = %v, want %v", cMap["project.drive_folder_id"], "test-folder")
+	}
+	if cMap["path.data_dir"] != "/data" {
+		t.Errorf("configFieldMap() path.data_dir = %v, want %v", cMap["path.data_dir"], "/data")
+	}
+}
+
+func TestGetConfigFilePath(t *testing.T) {
+	result := GetConfigFilePath()
+	if result == "" {
+		t.Error("GetConfigFilePath() should return non-empty path")
 	}
 }
