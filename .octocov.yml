@@ -30,9 +30,7 @@ comment:
 summary:
   if: true
 report:
-  if: is_default_branch
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 push:
-  if: is_default_branch
-  message: Update by octocov
+  message: 'chore(ci): update by octocov'
