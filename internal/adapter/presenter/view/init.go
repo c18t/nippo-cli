@@ -50,10 +50,10 @@ const (
 type ConfigureProjectViewModel struct {
 	core.ViewModel
 	viewModel
-	Sequence        ConfigureProjectSequence
-	ConfigExists    bool     // Whether config file already exists
-	IsUnderGit      bool     // Whether data_dir is under git repo
-	DefaultValues   []string // Defaults from existing config (for merge)
+	Sequence      ConfigureProjectSequence
+	ConfigExists  bool     // Whether config file already exists
+	IsUnderGit    bool     // Whether data_dir is under git repo
+	DefaultValues []string // Defaults from existing config (for merge)
 }
 
 type ConfigureProjectView interface {
@@ -132,7 +132,7 @@ func (v *configureProjectView) runWizard(vm *ConfigureProjectViewModel) {
 		"https://github.com/user/repo",
 		"main",
 		"/templates",
-		"/dist",
+		"/assets",
 	}
 
 	// Get existing config values (will be pre-filled if non-empty)

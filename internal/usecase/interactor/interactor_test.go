@@ -518,17 +518,8 @@ func TestNewDoctorInteractor(t *testing.T) {
 }
 
 func TestDoctorInteractor_Handle(t *testing.T) {
-	// Setup temp directory for testing
-	tmpDir, err := os.MkdirTemp("", "doctor_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	// Setup global config
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockPres := &mockDoctorPresenter{}
 	injector := inject.NewTestInjector(&inject.TestBasePackageOptions{
@@ -614,28 +605,8 @@ func TestNewInitSettingInteractor(t *testing.T) {
 // Tests for CleanCommandInteractor.Handle
 
 func TestCleanCommandInteractor_Handle_Success(t *testing.T) {
-	// Setup temp directory for testing
-	tmpDir, err := os.MkdirTemp("", "clean_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	// Create XDG config directory structure for test
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Set XDG environment for test
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	// Setup global config
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockRepo := &mockAssetRepository{}
 	mockPres := &mockCleanCommandPresenter{}
@@ -656,15 +627,8 @@ func TestCleanCommandInteractor_Handle_Success(t *testing.T) {
 }
 
 func TestCleanCommandInteractor_Handle_CleanNippoCacheError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "clean_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockRepo := &mockAssetRepository{cleanNippoCacheErr: fmt.Errorf("cache clean error")}
 	mockPres := &mockCleanCommandPresenter{}
@@ -682,26 +646,8 @@ func TestCleanCommandInteractor_Handle_CleanNippoCacheError(t *testing.T) {
 }
 
 func TestCleanCommandInteractor_Handle_CleanBuildCacheError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "clean_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	// Create XDG config directory structure for test
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Set XDG environment for test
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockRepo := &mockAssetRepository{cleanBuildCacheErr: fmt.Errorf("build cache clean error")}
 	mockPres := &mockCleanCommandPresenter{}
@@ -721,7 +667,9 @@ func TestCleanCommandInteractor_Handle_CleanBuildCacheError(t *testing.T) {
 // Tests for FormatCommandInteractor
 
 func TestFormatCommandInteractor_Handle_NoDriveFolderId(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.DriveFolderId = ""
 
 	mockRemoteQuery := &mockRemoteNippoQuery{}
@@ -741,7 +689,9 @@ func TestFormatCommandInteractor_Handle_NoDriveFolderId(t *testing.T) {
 }
 
 func TestFormatCommandInteractor_Handle_NoFiles(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	mockRemoteQuery := &mockRemoteNippoQuery{nippos: []model.Nippo{}}
@@ -761,7 +711,9 @@ func TestFormatCommandInteractor_Handle_NoFiles(t *testing.T) {
 }
 
 func TestFormatCommandInteractor_Handle_ListError(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	mockRemoteQuery := &mockRemoteNippoQuery{listErr: fmt.Errorf("list error")}
@@ -781,26 +733,10 @@ func TestFormatCommandInteractor_Handle_ListError(t *testing.T) {
 }
 
 func TestFormatCommandInteractor_Handle_WithFiles(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	// Create config file path
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	// Create test nippo with front-matter already present
 	date := model.NewNippoDate("2024-01-15.md")
@@ -833,25 +769,10 @@ func TestFormatCommandInteractor_Handle_WithFiles(t *testing.T) {
 }
 
 func TestFormatCommandInteractor_Handle_Cancelled(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	date := model.NewNippoDate("2024-01-15.md")
 	nippo := model.Nippo{
@@ -879,15 +800,8 @@ func TestFormatCommandInteractor_Handle_Cancelled(t *testing.T) {
 // Tests for DeployCommandInteractor
 
 func TestDeployCommandInteractor_Handle_ListError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "deploy_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockProv := &mockLocalFileProvider{listErr: fmt.Errorf("list error")}
 	mockPres := &mockDeployCommandPresenter{}
@@ -908,7 +822,9 @@ func TestDeployCommandInteractor_Handle_ListError(t *testing.T) {
 // Tests for BuildCommandInteractor
 
 func TestBuildCommandInteractor_Handle_NoDriveFolderId(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.DriveFolderId = ""
 
 	mockAssetRepo := &mockAssetRepository{}
@@ -936,7 +852,9 @@ func TestBuildCommandInteractor_Handle_NoDriveFolderId(t *testing.T) {
 }
 
 func TestBuildCommandInteractor_Handle_NippoFacadeError(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	mockAssetRepo := &mockAssetRepository{}
@@ -964,7 +882,9 @@ func TestBuildCommandInteractor_Handle_NippoFacadeError(t *testing.T) {
 }
 
 func TestBuildCommandInteractor_Handle_Cancelled(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	mockAssetRepo := &mockAssetRepository{}
@@ -1014,15 +934,8 @@ func TestRootCommandInteractor_Handle_EmptyVersion(t *testing.T) {
 // Tests for UpdateCommandInteractor
 
 func TestUpdateCommandInteractor_Handle_ListError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "update_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockProv := &mockLocalFileProvider{listErr: fmt.Errorf("list error")}
 	mockPres := &mockUpdateCommandPresenter{}
@@ -1043,27 +956,11 @@ func TestUpdateCommandInteractor_Handle_ListError(t *testing.T) {
 // Tests for InitSettingInteractor
 
 func TestInitSettingInteractor_Handle_ConfigExistsCancel(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "init_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	// Create config directory and file
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	configFile := filepath.Join(configDir, "nippo.toml")
-	if err := os.WriteFile(configFile, []byte(""), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
+	// Create config file
+	env.CreateConfigFile(t, "")
 
 	mockProv := &mockLocalFileProvider{}
 	mockPres := &mockInitSettingPresenter{
@@ -1084,27 +981,11 @@ func TestInitSettingInteractor_Handle_ConfigExistsCancel(t *testing.T) {
 }
 
 func TestInitSettingInteractor_Handle_PromptError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "init_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	// Create config directory and file
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	configFile := filepath.Join(configDir, "nippo.toml")
-	if err := os.WriteFile(configFile, []byte(""), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
+	// Create config file
+	env.CreateConfigFile(t, "")
 
 	mockProv := &mockLocalFileProvider{}
 	mockPres := &mockInitSettingPresenter{
@@ -1210,25 +1091,10 @@ func TestNewInitSettingInteractor_MissingDependency(t *testing.T) {
 // Test with config that has timestamp set
 
 func TestFormatCommandInteractor_Handle_WithLastFormatTimestamp(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
 	core.Cfg.LastFormatTimestamp = time.Now().Add(-24 * time.Hour) // Set last format timestamp
 
 	mockRemoteQuery := &mockRemoteNippoQuery{nippos: []model.Nippo{}}
@@ -1251,8 +1117,11 @@ func TestFormatCommandInteractor_Handle_WithLastFormatTimestamp(t *testing.T) {
 // We can test the exported types and helper functions where accessible
 
 func TestGetSiteUrl_NotConfigured(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	core.Cfg.Project.SiteUrl = ""
+	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	// We can't directly call getSiteUrl from external package, but we can test
 	// through the interactors that use it
@@ -1262,8 +1131,6 @@ func TestGetSiteUrl_NotConfigured(t *testing.T) {
 	mockTemplate := &mockTemplateService{}
 	mockFileProvider := &mockLocalFileProvider{}
 	mockPres := &mockBuildCommandPresenter{}
-
-	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	injector := inject.NewTestInjector(&inject.TestBasePackageOptions{
 		AssetRepository:       mockAssetRepo,
@@ -1304,25 +1171,10 @@ func TestAuthInteractor_Creation(t *testing.T) {
 // Test with various input scenarios
 
 func TestFormatCommandInteractor_Handle_FileWithoutFrontMatter(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	// Create test nippo without front-matter
 	date := model.NewNippoDate("2024-01-15.md")
@@ -1349,25 +1201,10 @@ func TestFormatCommandInteractor_Handle_FileWithoutFrontMatter(t *testing.T) {
 }
 
 func TestFormatCommandInteractor_Handle_FileWithNowPlaceholder(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	// Create test nippo with "now" placeholder
 	date := model.NewNippoDate("2024-01-15.md")
@@ -1394,25 +1231,10 @@ func TestFormatCommandInteractor_Handle_FileWithNowPlaceholder(t *testing.T) {
 }
 
 func TestFormatCommandInteractor_Handle_UpdateError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	// Create test nippo without front-matter (needs update)
 	date := model.NewNippoDate("2024-01-15.md")
@@ -1443,17 +1265,8 @@ func TestFormatCommandInteractor_Handle_UpdateError(t *testing.T) {
 
 // Helper test for extractDriveFolderId via init interactor
 func TestExtractDriveFolderId_ViaInitInteractor(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "init_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	// We can test that the init interactor can be created successfully
 	mockProv := &mockLocalFileProvider{}
@@ -1509,25 +1322,10 @@ func TestSuccessHTML_Exists(t *testing.T) {
 
 // Additional test for types that use html/template.HTML
 func TestFormatCommandInteractor_WithMalformedFrontMatter(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	// Create test nippo with malformed front-matter
 	date := model.NewNippoDate("2024-01-15.md")
@@ -1567,15 +1365,12 @@ func TestServiceErrCancelled(t *testing.T) {
 
 // Test BuildCommandInteractor with successful build path
 func TestBuildCommandInteractor_Handle_SuccessfulBuild(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "build_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	// Create cache directories
-	cacheDir := filepath.Join(tmpDir, "cache", "md")
-	outputDir := filepath.Join(tmpDir, "cache", "output")
+	cacheDir := filepath.Join(env.CacheDir, "md")
+	outputDir := filepath.Join(env.CacheDir, "output")
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -1589,20 +1384,8 @@ func TestBuildCommandInteractor_Handle_SuccessfulBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 	core.Cfg.Project.SiteUrl = "https://example.com"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = filepath.Join(tmpDir, "cache")
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	mockAssetRepo := &mockAssetRepository{}
 	mockLocalQuery := &mockLocalNippoQuery{
@@ -1637,26 +1420,11 @@ func TestBuildCommandInteractor_Handle_SuccessfulBuild(t *testing.T) {
 
 // Test BuildCommandInteractor when CleanBuildCache fails
 func TestBuildCommandInteractor_Handle_CleanBuildCacheError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "build_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 	core.Cfg.Project.SiteUrl = "https://example.com"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = filepath.Join(tmpDir, "cache")
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	mockAssetRepo := &mockAssetRepository{cleanBuildCacheErr: fmt.Errorf("clean error")}
 	mockLocalQuery := &mockLocalNippoQuery{}
@@ -1687,7 +1455,9 @@ func TestBuildCommandInteractor_Handle_CleanBuildCacheError(t *testing.T) {
 
 // Test AuthInteractor Handle with missing data directory
 func TestAuthInteractor_Handle_CreateDataDirError(t *testing.T) {
-	core.Cfg = &core.Config{}
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
+
 	// Use an invalid path that can't be created
 	core.Cfg.Paths.DataDir = "/nonexistent/path/that/cannot/be/created/deep/nested"
 
@@ -1706,14 +1476,10 @@ func TestAuthInteractor_Handle_CreateDataDirError(t *testing.T) {
 
 // Test AuthInteractor Handle with valid data dir but no credentials
 func TestAuthInteractor_Handle_NoCredentials(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "auth_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
+	// DataDir is set by SetupTestEnv, but no credentials file exists
 
 	mockPres := &mockAuthPresenter{}
 	injector := inject.NewTestInjector(&inject.TestBasePackageOptions{
@@ -1730,20 +1496,11 @@ func TestAuthInteractor_Handle_NoCredentials(t *testing.T) {
 
 // Test AuthInteractor Handle with invalid credentials file
 func TestAuthInteractor_Handle_InvalidCredentials(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "auth_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	// Create invalid credentials file
-	credPath := filepath.Join(tmpDir, "credentials.json")
-	if err := os.WriteFile(credPath, []byte("invalid json"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
+	env.CreateCredentialsFile(t, "invalid json")
 
 	mockPres := &mockAuthPresenter{}
 	injector := inject.NewTestInjector(&inject.TestBasePackageOptions{
@@ -1760,39 +1517,15 @@ func TestAuthInteractor_Handle_InvalidCredentials(t *testing.T) {
 
 // Test DoctorInteractor with various paths
 func TestDoctorInteractor_Handle_AllChecks(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "doctor_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	// Create config file
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	configFile := filepath.Join(configDir, "nippo.toml")
-	if err := os.WriteFile(configFile, []byte("[project]\ndrive_folder_id = \"test\""), 0644); err != nil {
-		t.Fatal(err)
-	}
+	env.CreateConfigFile(t, "[project]\ndrive_folder_id = \"test\"")
 
-	// Create data directory with token
-	dataDir := filepath.Join(tmpDir, "data")
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	tokenFile := filepath.Join(dataDir, "token.json")
-	if err := os.WriteFile(tokenFile, []byte("{}"), 0644); err != nil {
-		t.Fatal(err)
-	}
+	// Create token file
+	env.CreateTokenFile(t, "{}")
 
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = dataDir
-	core.Cfg.Paths.CacheDir = tmpDir
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
 
 	mockPres := &mockDoctorPresenter{}
@@ -1813,20 +1546,14 @@ func TestDoctorInteractor_Handle_AllChecks(t *testing.T) {
 
 // Test DeployCommandInteractor - vercel command not available in tests
 func TestDeployCommandInteractor_Handle_VercelNotInstalled(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "deploy_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	outputDir := filepath.Join(tmpDir, "cache", "output")
+	outputDir := filepath.Join(env.CacheDir, "output")
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = filepath.Join(tmpDir, "cache")
 	core.Cfg.Project.Url = "https://github.com/test/repo"
 	core.Cfg.Project.Branch = "main"
 
@@ -1849,15 +1576,8 @@ func TestDeployCommandInteractor_Handle_VercelNotInstalled(t *testing.T) {
 
 // Test UpdateCommandInteractor with empty entries
 func TestUpdateCommandInteractor_Handle_NoFiles(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "update_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
 	mockProv := &mockLocalFileProvider{entries: []os.DirEntry{}}
 	mockPres := &mockUpdateCommandPresenter{}
@@ -1877,36 +1597,21 @@ func TestUpdateCommandInteractor_Handle_NoFiles(t *testing.T) {
 
 // Test InitSettingInteractor with new config
 func TestInitSettingInteractor_Handle_NewConfig(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "init_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
 	// Don't create config file - this is a new initialization
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
-
-	core.Cfg = &core.Config{}
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
 
 	// Create mock presenter that will provide responses for prompts
 	mockProv := &mockLocalFileProvider{}
 	mockPres := &mockInitSettingPresenter{
 		promptResponses: []interface{}{
-			"test-folder-id",        // DriveFolder
-			"https://example.com",   // SiteUrl
-			"https://github.com/t",  // Url
-			"main",                  // Branch
-			"template",              // TemplatePath
-			"static",                // AssetPath
+			"test-folder-id",       // DriveFolder
+			"https://example.com",  // SiteUrl
+			"https://github.com/t", // Url
+			"main",                 // Branch
+			"template",             // TemplatePath
+			"static",               // AssetPath
 		},
 	}
 
@@ -1926,25 +1631,10 @@ func TestInitSettingInteractor_Handle_NewConfig(t *testing.T) {
 
 // Test FormatCommandInteractor with file that has missing created field
 func TestFormatCommandInteractor_Handle_MissingCreatedField(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "format_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
+	env := core.SetupTestEnv(t)
+	defer env.Cleanup()
 
-	core.Cfg = &core.Config{}
 	core.Cfg.Project.DriveFolderId = "test-folder-id"
-	core.Cfg.Paths.DataDir = tmpDir
-	core.Cfg.Paths.CacheDir = tmpDir
-
-	configDir := filepath.Join(tmpDir, ".config", "nippo")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	oldXDGConfig := os.Getenv("XDG_CONFIG_HOME")
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
-	defer func() { _ = os.Setenv("XDG_CONFIG_HOME", oldXDGConfig) }()
 
 	// Create test nippo with front-matter but missing created field
 	date := model.NewNippoDate("2024-01-15.md")

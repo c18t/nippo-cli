@@ -16,7 +16,11 @@ type rootCommandPresenter struct {
 }
 
 func NewRootCommandPresenter(i do.Injector) (RootCommandPresenter, error) {
-	return &rootCommandPresenter{&consolePresenter{}}, nil
+	base, err := do.Invoke[ConsolePresenter](i)
+	if err != nil {
+		return nil, err
+	}
+	return &rootCommandPresenter{base}, nil
 }
 
 func (p *rootCommandPresenter) Complete(output *port.RootCommandUseCaseOutputData) {

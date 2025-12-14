@@ -1,4 +1,4 @@
-exclude: ^(.claude/commands/openspec/.*|.github/pull_request_template.md|.scaffdog/.*.md)$
+exclude: ^(.claude/commands/openspec/.*|.github/pull_request_template.md|.scaffdog/.*.md|badges/.*)$
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks

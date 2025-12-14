@@ -63,7 +63,12 @@ func (m *mockInitViewProvider) Handle(vm core.ViewModel) {
 // Tests for RootCommandPresenter
 
 func TestNewRootCommandPresenter(t *testing.T) {
+	mockBase := &mockConsolePresenter{}
 	injector := do.New()
+	do.Provide(injector, func(_ do.Injector) (ConsolePresenter, error) {
+		return mockBase, nil
+	})
+
 	p, err := NewRootCommandPresenter(injector)
 	if err != nil {
 		t.Errorf("NewRootCommandPresenter() error = %v", err)
