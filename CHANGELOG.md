@@ -1,13 +1,20 @@
 # Changelog
 
-## [v0.15.5](https://github.com/c18t/nippo-cli/compare/v0.15.4...v0.15.5) - 2025-12-14
+## [v0.16.0](https://github.com/c18t/nippo-cli/compare/v0.15.4...v0.16.0) - 2025-12-14
+
 - Release v0.16.0: TUI components, front-matter support, auth/doctor commands, and security fixes by @c18t in https://github.com/c18t/nippo-cli/pull/73
 
+BRAKING CHANGES:
+
+- OAuth scope has been changed to DriveScope (write permission), so existing users need to re-authenticate with `nippo auth` command.
+
 ## [v0.15.4](https://github.com/c18t/nippo-cli/compare/v0.15.3...v0.15.4) - 2025-12-12
+
 - chore(deps): update dependencies by @c18t in https://github.com/c18t/nippo-cli/pull/69
 - Bump github.com/spf13/cobra from 1.10.1 to 1.10.2 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/68
 
 ## [v0.15.3](https://github.com/c18t/nippo-cli/compare/v0.15.2...v0.15.3) - 2025-11-17
+
 - chore: update devcontainer and dependencies by @c18t in https://github.com/c18t/nippo-cli/pull/59
 
 ## [v0.15.2](https://github.com/c18t/nippo-cli/compare/v0.15.1...v0.15.2) - 2025-11-17
