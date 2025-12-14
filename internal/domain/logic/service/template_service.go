@@ -19,9 +19,9 @@ func NewTemplateService(_ do.Injector) (i.TemplateService, error) {
 	return &templateService{}, nil
 }
 
-func (s *templateService) SaveTo(filePath string, templateName string, data any) error {
+func (s *templateService) SaveTo(filePath string, templateName string, data any) (err error) {
 	outputDir := filepath.Dir(filePath)
-	err := os.MkdirAll(outputDir, 0755)
+	err = os.MkdirAll(outputDir, 0755)
 	if err != nil && !os.IsExist(err) {
 		fmt.Println(err)
 		return nil
@@ -32,7 +32,11 @@ func (s *templateService) SaveTo(filePath string, templateName string, data any)
 		fmt.Println(err)
 		return nil
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	tmpl, err := s.template().Lookup("layout").Clone()
 	if err != nil {
@@ -47,7 +51,7 @@ func (s *templateService) SaveTo(filePath string, templateName string, data any)
 
 func (s *templateService) template() *template.Template {
 	if s.t == nil {
-		s.lazyLoadTemplate()
+		_ = s.lazyLoadTemplate()
 	}
 	return s.t
 }

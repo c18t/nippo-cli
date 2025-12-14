@@ -16,10 +16,3 @@ func message(output interface{}) bool {
 	}
 	return ret
 }
-
-func either2(input interface{}, err error) interface{} {
-	if err != nil {
-		return err
-	}
-	return input
-}

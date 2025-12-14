@@ -115,7 +115,7 @@ func (g *driveFileProvider) getFileService() (*drive.FilesService, error) {
 	}
 
 	dataDir := core.Cfg.GetDataDir()
-	tok, err := g.tokenFromFile(filepath.Join(dataDir, "token.json"))
+	tok, err := g.tokenFromFile(dataDir, filepath.Join(dataDir, "token.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +176,8 @@ func (g *driveFileProvider) HealthCheck() error {
 }
 
 // Retrieves a token from a local file.
-func (g *driveFileProvider) tokenFromFile(file string) (*oauth2.Token, error) {
-	f, err := os.Open(file)
+func (g *driveFileProvider) tokenFromFile(baseDir, file string) (*oauth2.Token, error) {
+	f, err := core.SafeOpen(baseDir, file)
 	if err != nil {
 		return nil, err
 	}

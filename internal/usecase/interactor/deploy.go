@@ -50,7 +50,7 @@ func (u *deployCommandInteractor) Handle(input *port.DeployCommandUseCaseInputDa
 		return
 	}
 	for _, file := range files {
-		err = u.provider.Copy(filepath.Join(outputDir, file.Name()), filepath.Join(assetsDir, file.Name()))
+		err = u.provider.Copy(assetsDir, filepath.Join(outputDir, file.Name()), filepath.Join(assetsDir, file.Name()))
 		if err != nil {
 			u.presenter.Suspend(err)
 			return

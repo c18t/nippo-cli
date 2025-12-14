@@ -51,8 +51,6 @@ type buildProgressMsg struct {
 
 type buildCompleteMsg struct{}
 
-type buildCancelledMsg struct{}
-
 func NewBuildProgressController() *BuildProgressController {
 	return &BuildProgressController{
 		done: make(chan struct{}),

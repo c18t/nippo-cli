@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -154,6 +155,26 @@ func IsPathSafe(basePath, targetPath string) bool {
 	}
 	// Ensure target starts with base path followed by separator
 	return strings.HasPrefix(absTarget, absBase+string(filepath.Separator)) || absTarget == absBase
+}
+
+// SafeOpen opens a file after validating the path is within the allowed base directory.
+// Returns an error if the path escapes the base directory.
+func SafeOpen(basePath, filePath string) (*os.File, error) {
+	cleanPath := filepath.Clean(filePath)
+	if !IsPathSafe(basePath, cleanPath) {
+		return nil, fmt.Errorf("path traversal detected: %s is outside %s", filePath, basePath)
+	}
+	return os.Open(cleanPath)
+}
+
+// SafeOpenFile opens a file with flags after validating the path.
+// Returns an error if the path escapes the base directory.
+func SafeOpenFile(basePath, filePath string, flag int, perm os.FileMode) (*os.File, error) {
+	cleanPath := filepath.Clean(filePath)
+	if !IsPathSafe(basePath, cleanPath) {
+		return nil, fmt.Errorf("path traversal detected: %s is outside %s", filePath, basePath)
+	}
+	return os.OpenFile(cleanPath, flag, perm)
 }
 
 // homeDir returns the user's home directory

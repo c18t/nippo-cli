@@ -402,8 +402,7 @@ func (u *buildCommandInteractor) buildFeed() error {
 	if err != nil {
 		return err
 	}
-	u.fileProvider.Write(filepath.Join(outputDir, "feed.xml"), []byte(rss))
-	return nil
+	return u.fileProvider.Write(filepath.Join(outputDir, "feed.xml"), []byte(rss))
 }
 
 func (u *buildCommandInteractor) buildSiteMap() error {
@@ -495,6 +494,5 @@ func (u *buildCommandInteractor) buildSiteMap() error {
 	if err != nil {
 		return nil
 	}
-	u.fileProvider.Write(filepath.Join(outputDir, "sitemap_index.xml"), []byte(xmlString))
-	return nil
+	return u.fileProvider.Write(filepath.Join(outputDir, "sitemap_index.xml"), []byte(xmlString))
 }

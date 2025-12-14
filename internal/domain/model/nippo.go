@@ -87,7 +87,7 @@ func (n *Nippo) GetMarkdown() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	rawContent, err := io.ReadAll(f)
 	if err != nil {

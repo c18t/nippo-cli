@@ -303,7 +303,7 @@ func (u *initSettingInteractor) downloadProject() error {
 	if err != nil {
 		return err
 	}
-	defer func() { io.Copy(io.Discard, resp.Body); resp.Body.Close() }()
+	defer func() { _, _ = io.Copy(io.Discard, resp.Body); _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to download: HTTP %d", resp.StatusCode)
@@ -334,7 +334,7 @@ func (u *initSettingInteractor) unzipSelective(zipFile, destDir, branch string) 
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	templatePath := core.Cfg.Project.TemplatePath
 	assetPath := core.Cfg.Project.AssetPath

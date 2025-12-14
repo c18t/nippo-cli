@@ -233,7 +233,7 @@ func (c *Config) appendCommentedPathsSection() error {
 # cache_dir = %q
 `, ResolveDataDir(), ResolveCacheDir())
 
-	return os.WriteFile(configPath, append(content, []byte(pathsSection)...), 0644)
+	return os.WriteFile(configPath, append(content, []byte(pathsSection)...), 0600)
 }
 
 func (c *Config) configFieldMap(cMap map[string]any, i interface{}, prefex string) (map[string]any, error) {

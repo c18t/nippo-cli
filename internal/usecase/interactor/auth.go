@@ -82,7 +82,7 @@ See: https://github.com/c18t/nippo-cli#setup`, credPath))
 	// Save token (spinner continues during save)
 	output.Message = "Saving credentials..."
 	u.presenter.Progress(output)
-	if err := u.saveToken(filepath.Join(dataDir, "token.json"), tok); err != nil {
+	if err := u.saveToken(dataDir, filepath.Join(dataDir, "token.json"), tok); err != nil {
 		u.presenter.Suspend(fmt.Errorf("unable to save token: %w", err))
 		return
 	}
@@ -92,12 +92,16 @@ See: https://github.com/c18t/nippo-cli#setup`, credPath))
 }
 
 // saveToken saves a token to a file path.
-func (u *authInteractor) saveToken(path string, token *oauth2.Token) error {
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+func (u *authInteractor) saveToken(baseDir, path string, token *oauth2.Token) (err error) {
+	f, err := core.SafeOpenFile(baseDir, path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to cache oauth token: %w", err)
 	}
-	defer func() { _ = f.Close() }()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("unable to close token file: %w", cerr)
+		}
+	}()
 	if err := json.NewEncoder(f).Encode(token); err != nil {
 		return fmt.Errorf("unable to encode token: %w", err)
 	}
@@ -183,8 +187,9 @@ func setupCallbackServer(port int, expectedState string, codeChan chan string, e
 	})
 
 	return &http.Server{
-		Addr:    fmt.Sprintf("127.0.0.1:%d", port), // Bind to localhost only for security
-		Handler: mux,
+		Addr:              fmt.Sprintf("127.0.0.1:%d", port), // Bind to localhost only for security
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 }
 
