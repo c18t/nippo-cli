@@ -25,4 +25,4 @@ jobs:
         run: |
           git status
           git diff
-          git log -5 | tee
+          git log -p -5 | tee
