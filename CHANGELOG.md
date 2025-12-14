@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.16.1](https://github.com/c18t/nippo-cli/compare/v0.16.0...v0.16.1) - 2025-12-14
+
+- fix(presenter): resolve nil pointer panic on version command by @c18t in https://github.com/c18t/nippo-cli/pull/78
+- fix issue where user's ~/.config/nippo/nippo.toml is overwritten during test execution by @c18t in https://github.com/c18t/nippo-cli/pull/78
+
 ## [v0.16.0](https://github.com/c18t/nippo-cli/compare/v0.15.4...v0.16.0) - 2025-12-14
 
 - Release v0.16.0: TUI components, front-matter support, auth/doctor commands, and security fixes by @c18t in https://github.com/c18t/nippo-cli/pull/73
