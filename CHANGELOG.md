@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.15.5](https://github.com/c18t/nippo-cli/compare/v0.15.4...v0.15.5) - 2025-12-14
+- Release v0.16.0: TUI components, front-matter support, auth/doctor commands, and security fixes by @c18t in https://github.com/c18t/nippo-cli/pull/73
+
 ## [v0.15.4](https://github.com/c18t/nippo-cli/compare/v0.15.3...v0.15.4) - 2025-12-12
 - chore(deps): update dependencies by @c18t in https://github.com/c18t/nippo-cli/pull/69
 - Bump github.com/spf13/cobra from 1.10.1 to 1.10.2 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/68
