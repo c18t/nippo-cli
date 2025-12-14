@@ -1,6 +1,9 @@
 name: Go-test
 
 on:
+  push:
+    branches-ignore:
+      - main
   pull_request:
 
 jobs:
@@ -9,9 +12,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 5
       - name: Setup Go environment
         uses: actions/setup-go@v6
         with:
@@ -21,8 +21,3 @@ jobs:
       - name: Test with coverage report output
         run: go test ./... -coverprofile=coverage.out
       - uses: k1LoW/octocov-action@v1
-      - name: Check badge file status
-        run: |
-          git status
-          git diff
-          git log -p -5 | tee

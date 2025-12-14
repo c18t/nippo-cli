@@ -33,5 +33,4 @@ report:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 push:
-  if: is_pull_request
-  message: Update by octocov
+  message: 'chore(ci): update by octocov'
