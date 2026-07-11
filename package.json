@@ -1,7 +1,7 @@
 {
   "packageManager": "pnpm@10.25.0",
   "devDependencies": {
-    "@anthropic-ai/claude-code": "^2.0.67",
+    "@anthropic-ai/claude-code": "^2.1.207",
     "@devcontainers/cli": "^0.80.3",
     "@fission-ai/openspec": "^0.16.0",
     "ccmanager": "^2.11.6",
