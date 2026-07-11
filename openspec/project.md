@@ -4,7 +4,7 @@
 
 nippo-cli is a command-line tool that powers the author's "nippo" (daily report)
 workflow. It provides functionality to initialize project settings, build static
-sites from markdown content, and deploy them to Google Drive.
+sites from markdown content stored in Google Drive, and deploy them to Vercel.
 
 ## Tech Stack
 
@@ -87,8 +87,8 @@ The project follows **Clean Architecture** with three distinct layers:
 - Run tests with race detector: `go run -race . --help`
 - Verify DI container initialization and scope isolation
 - Test error handling paths in constructors
-- Integration tests for each command (`init`, `build`, `deploy`, `clean`,
-  `update`)
+- Integration tests for each command (`init`, `auth`, `build`, `deploy`,
+  `clean`, `update`, `format`, `doctor`)
 
 ### Git Workflow
 
@@ -106,13 +106,18 @@ The project follows **Clean Architecture** with three distinct layers:
 
 ### Commands
 
-The CLI provides five main commands:
+The CLI provides eight commands:
 
-1. **init**: Initialize project settings and Google Drive authentication
-2. **build**: Build static site from markdown content
-3. **deploy**: Publish built content to Google Drive
-4. **clean**: Clean build artifacts
-5. **update**: Update existing content
+1. **init**: Initialize project settings and download site templates/assets
+   from the [c18t/nippo](https://github.com/c18t/nippo) repository
+2. **auth**: Authenticate with Google Drive (OAuth2)
+3. **build**: Build static site from markdown content fetched from Google
+   Drive
+4. **deploy**: Publish built content to Vercel via the `vercel` CLI
+5. **clean**: Clean build artifacts
+6. **update**: Re-download site templates/assets from the project repository
+7. **format**: Manage front-matter in nippo files
+8. **doctor**: Check nippo environment health
 
 ### Development Commands
 
@@ -144,12 +149,15 @@ Refer to `@openspec/AGENTS.md` for detailed workflow.
   proper error propagation
 - **Markdown line length**: 80 characters (enforced by markdownlint for OpenSpec
   files, excluding code blocks)
-- **Google Drive integration**: Requires OAuth2 authentication flow during `init`
+- **Google Drive integration**: Requires OAuth2 authentication flow via `auth`
 
 ## External Dependencies
 
-- **Google Drive API**: Used for storing and deploying generated content
+- **Google Drive API**: Used for fetching daily report markdown source files
 - **Google OAuth2**: Handles user authentication for Drive access
+- **Vercel CLI**: Used by `deploy` to publish the built site (`vercel --prod`)
+- **c18t/nippo repository**: Source of site templates and static assets,
+  downloaded by `init`/`update`
 - **Container runtime**: Docker for devcontainer development environment
 - **mise**: Tool version management (replaces asdf/rtx)
 - **pre-commit**: Git hook management for code quality checks
