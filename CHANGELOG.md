@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.16.3](https://github.com/c18t/nippo-cli/compare/v0.16.2...v0.16.3) - 2026-07-11
+
+- Bump @fission-ai/openspec from 0.16.0 to 1.6.0 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/82
+
 ## [v0.16.2](https://github.com/c18t/nippo-cli/compare/v0.16.1...v0.16.2) - 2026-07-11
 
 - Bump google.golang.org/api from 0.257.0 to 0.271.0 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/100
