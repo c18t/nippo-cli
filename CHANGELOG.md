@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.16.2](https://github.com/c18t/nippo-cli/compare/v0.16.1...v0.16.2) - 2026-07-11
+
+- Bump google.golang.org/api from 0.257.0 to 0.271.0 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/100
+- Bump goreleaser/goreleaser-action from 6 to 7 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/97
+- Bump markdownlint-cli2 from 0.19.1 to 0.20.0 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/85
+- Bump github.com/charmbracelet/bubbles from 0.21.0 to 1.0.0 by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/95
+
 ## [v0.16.1](https://github.com/c18t/nippo-cli/compare/v0.16.0...v0.16.1) - 2025-12-14
 
 - fix(presenter): resolve nil pointer panic on version command by @c18t in https://github.com/c18t/nippo-cli/pull/78
