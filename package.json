@@ -4,7 +4,7 @@
     "@anthropic-ai/claude-code": "^2.0.67",
     "@devcontainers/cli": "^0.80.3",
     "@fission-ai/openspec": "^0.16.0",
-    "ccmanager": "^2.11.6",
+    "ccmanager": "^4.2.1",
     "markdownlint-cli2": "^0.20.0",
     "pnpm": "^10.25.0",
     "prettier": "^3.7.4",
