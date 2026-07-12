@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.16.5](https://github.com/c18t/nippo-cli/compare/v0.16.4...v0.16.5) - 2026-07-12
+
+- docs(github): add pull request template for release integration PRs by @c18t in https://github.com/c18t/nippo-cli/pull/113
+- docs(github): improve pull request templates by @c18t in https://github.com/c18t/nippo-cli/pull/116
+- Release: DX improvements (#106-#111) by @c18t in https://github.com/c18t/nippo-cli/pull/115
+- chore(pnpm): limit network concurrency to avoid socket timeouts by @c18t in https://github.com/c18t/nippo-cli/pull/106
+- ci(octocov): publish badges to dedicated badges branch by @c18t in https://github.com/c18t/nippo-cli/pull/107
+- chore: fix always-failing pre-commit hooks (govulncheck, bearer) by @c18t in https://github.com/c18t/nippo-cli/pull/108
+- ci(dependabot): group updates to avoid lockfile conflict chains by @c18t in https://github.com/c18t/nippo-cli/pull/109
+- chore(lint): use pnpm-managed markdownlint-cli2 in pre-commit by @c18t in https://github.com/c18t/nippo-cli/pull/110
+- docs(openspec): stop pinning go version in project.md by @c18t in https://github.com/c18t/nippo-cli/pull/111
+
 ## [v0.16.4](https://github.com/c18t/nippo-cli/compare/v0.16.3...v0.16.4) - 2026-07-12
 
 - chore(deps): clean up npm dev dependencies and fix octocov on dependabot runs by @c18t in https://github.com/c18t/nippo-cli/pull/103
