@@ -2,8 +2,6 @@ name: Go-test
 
 on:
   push:
-    branches-ignore:
-      - main
   pull_request:
 
 jobs:
@@ -21,3 +19,19 @@ jobs:
       - name: Test with coverage report output
         run: go test ./... -coverprofile=coverage.out
       - uses: k1LoW/octocov-action@v1
+      # main は PR 以外のコミットを禁止しているため、バッジは専用の
+      # badges ブランチに push し README から raw URL で参照する
+      - name: Publish badges to badges branch
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin badges
+          git worktree add /tmp/badges-branch origin/badges
+          cp badges/*.svg /tmp/badges-branch/
+          cd /tmp/badges-branch
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore(ci): update badges'
+            git push origin HEAD:badges
+          fi
