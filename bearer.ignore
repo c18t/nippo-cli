@@ -1,4 +1,10 @@
 {
+  "23085bdff2645e56d47ee393d9902847_0": {
+    "author": "Claude",
+    "comment": "browser-open command is a fixed per-OS constant; URL passed as argument, no shell interpolation",
+    "false_positive": true,
+    "ignored_at": "2026-07-12T01:48:52Z"
+  },
   "b4152d732775b8f4305f720ece89bbfa_0": {
     "author": "Claude",
     "comment": "Go 1.22+ resolved range loop variable semantics",
@@ -10,5 +16,17 @@
     "comment": "Go 1.22+ resolved range loop variable semantics",
     "false_positive": true,
     "ignored_at": "2025-12-13T23:42:15Z"
+  },
+  "dcc363f2ca150e7277e2359220ddf027_0": {
+    "author": "Claude",
+    "comment": "zip slip is mitigated by core.IsPathSafe() validation immediately after Join",
+    "false_positive": true,
+    "ignored_at": "2026-07-12T01:48:52Z"
+  },
+  "f8bd36db146b9260333b30fb75031eca_0": {
+    "author": "Claude",
+    "comment": "zip slip is mitigated by core.IsPathSafe() validation immediately after Join",
+    "false_positive": true,
+    "ignored_at": "2026-07-12T01:48:53Z"
   }
 }

@@ -4,7 +4,7 @@
 
 [tools]
 # languages
-go = "1.25.5"
+go = "1.25.12"
 node = "25"
 python = "3"
 
@@ -31,6 +31,7 @@ yamllint = "latest"
 "go:honnef.co/go/tools/cmd/staticcheck" = "latest"
 "npm:@devcontainers/cli" = "latest"
 "npm:ccmanager" = "latest"
+"ubi:Bearer/bearer" = "latest"
 
 [tasks.setup]
 description = "Set up (Runs all `setup:*` tasks)"
