@@ -1,5 +1,7 @@
 # Changelog
 
+## [v0.16.5](https://github.com/c18t/nippo-cli/compare/v0.16.4...v0.16.5) - 2026-07-12
+
 ## [v0.16.4](https://github.com/c18t/nippo-cli/compare/v0.16.3...v0.16.4) - 2026-07-12
 
 - chore(deps): clean up npm dev dependencies and fix octocov on dependabot runs by @c18t in https://github.com/c18t/nippo-cli/pull/103
