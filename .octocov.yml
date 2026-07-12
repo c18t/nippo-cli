@@ -26,11 +26,14 @@ diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 comment:
-  if: is_pull_request
+  # dependabot 起動時は GITHUB_TOKEN が読み取り専用でコメント投稿が 403 になるためスキップ
+  if: is_pull_request && env.GITHUB_ACTOR != 'dependabot[bot]'
 summary:
   if: true
 report:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 push:
+  # dependabot 起動時は読み取り専用トークンで push できず exit 1 になるためスキップ
+  if: env.GITHUB_ACTOR != 'dependabot[bot]'
   message: 'chore(ci): update by octocov'
