@@ -16,10 +16,15 @@ repos:
       - id: shellcheck
       - id: yamllint
 
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.18.1
+  # markdownlint-cli2 は package.json (pnpm) 管理のバージョンを使う
+  # (remote hook だと rev と package.json の二重管理でバージョンが乖離するため)
+  - repo: local
     hooks:
       - id: markdownlint-cli2
+        name: markdownlint-cli2
+        entry: markdownlint-cli2
+        language: system
+        types: [markdown]
 
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: '3.0.0'
