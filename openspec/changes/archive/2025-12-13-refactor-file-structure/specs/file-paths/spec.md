@@ -139,7 +139,8 @@ troubleshooting. The TUI implementation SHALL follow the patterns defined in
 
 - **WHEN** user runs `nippo doctor` command
 - **THEN** the system SHALL check configuration validity
-- **AND** the system SHALL check project settings (drive folder, site URL, URL, branch)
+- **AND** the system SHALL check project settings (drive folder, site URL,
+  URL, branch)
 - **AND** the system SHALL check all resolved directory paths for existence
 - **AND** the system SHALL check required files (credentials.json, token.json,
   templates/, assets/)
