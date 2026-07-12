@@ -128,6 +128,11 @@ WORKDIR ${WORKING_DIR}
 COPY --chown=${UID}:${GID} mise-config.toml ${MISEPATH}/config.toml
 COPY --chown=${UID}:${GID} .cobra.yaml /home/${CONTAINER_USER}/.cobra.yaml
 
+# Install Claude Code with the native installer (no longer provided via npm devDependencies)
+# cf. https://code.claude.com/docs/en/devcontainer
+RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/home/${CONTAINER_USER}/.local/bin:$PATH"
+
 # Project-specific timezone (can be overridden per project)
 ENV TZ="${TZ}"
 
