@@ -33,7 +33,5 @@ summary:
 report:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
-push:
-  # dependabot 起動時は読み取り専用トークンで push できず exit 1 になるためスキップ
-  if: env.GITHUB_ACTOR != 'dependabot[bot]'
-  message: 'chore(ci): update by octocov'
+# バッジの push は octocov では行わず、go-test.yaml の Publish badges ステップが
+# main 実行時に badges ブランチへ push する（main は PR 以外のコミット禁止のため）
