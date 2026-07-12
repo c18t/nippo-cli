@@ -1,0 +1,7 @@
+# pnpm v10 では auth/registry 以外の設定は .npmrc ではなくこのファイルに書く
+# cf. https://pnpm.io/settings
+
+# npm レジストリへの同時 HTTP リクエスト数の上限。
+# デフォルト (auto: 16-64) では WSL2 環境でソケットタイムアウトが多発する。
+# コールドインストール実測: auto=失敗, 16=78s, 8=31s, 3=16s (2回計測で再現)
+networkConcurrency: 3

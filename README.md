@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 -->
 
-![Coverage](https://raw.githubusercontent.com/c18t/nippo-cli/main/badges/coverage.svg) ![Code to Test Ratio](https://raw.githubusercontent.com/c18t/nippo-cli/main/badges/ratio.svg) ![Test Execution Time](https://raw.githubusercontent.com/c18t/nippo-cli/main/badges/time.svg)
+![Coverage](https://raw.githubusercontent.com/c18t/nippo-cli/badges/coverage.svg) ![Code to Test Ratio](https://raw.githubusercontent.com/c18t/nippo-cli/badges/ratio.svg) ![Test Execution Time](https://raw.githubusercontent.com/c18t/nippo-cli/badges/time.svg)
 
 <!-- markdownlint-enable MD013 -->
 

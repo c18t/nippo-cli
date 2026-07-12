@@ -8,7 +8,7 @@ sites from markdown content stored in Google Drive, and deploy them to Vercel.
 
 ## Tech Stack
 
-- **Language**: Go 1.25.3
+- **Language**: Go (version: see `go.mod`)
 - **CLI Framework**: [spf13/cobra](https://github.com/spf13/cobra)
 - **Configuration**: [spf13/viper](https://github.com/spf13/viper)
 - **Dependency Injection**: [samber/do/v2](https://github.com/samber/do) v2.0.0
@@ -142,7 +142,8 @@ Refer to `@openspec/AGENTS.md` for detailed workflow.
 
 ## Important Constraints
 
-- **Go version**: Must use Go 1.25.3 or compatible
+- **Go version**: Follow the `go` directive in `go.mod` (toolchain is managed
+  via `.mise.toml`)
 - **DI pattern**: Always use `GetInjector().Clone()` for command-specific
   injectors to maintain scope isolation
 - **Error handling**: Never use `do.MustInvoke` - always use `do.Invoke` with

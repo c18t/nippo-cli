@@ -14,11 +14,29 @@ updates:
     directory: '/'
     schedule:
       interval: monthly
+    # actions の更新を1つの PR にまとめる
+    groups:
+      github-actions:
+        patterns:
+          - '*'
   - package-ecosystem: npm
     directory: '/'
     schedule:
       interval: monthly
+    # 全て devDependencies のため1つの PR にまとめる
+    # （個別 PR だと pnpm-lock.yaml がマージのたびに競合し rebase の連鎖になる）
+    groups:
+      npm-dev-dependencies:
+        patterns:
+          - '*'
   - package-ecosystem: gomod
     directory: '/'
     schedule:
       interval: weekly
+    # minor/patch は1つの PR にまとめ、破壊的変更があり得る major は個別 PR のまま
+    # （個別 PR だと go.sum がマージのたびに競合し rebase の連鎖になる）
+    groups:
+      gomod-minor-patch:
+        update-types:
+          - minor
+          - patch
