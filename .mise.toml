@@ -10,7 +10,6 @@ python = "3"
 
 # tools
 container-use = "latest"
-gh = "latest"
 golangci-lint = "latest"
 golangci-lint-langserver = "latest"
 goreleaser = "latest"
