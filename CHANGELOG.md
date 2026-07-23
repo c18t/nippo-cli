@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.16.6](https://github.com/c18t/nippo-cli/compare/v0.16.5...v0.16.6) - 2026-07-23
+
+- Release for dependabot updates (#119, #120, #121) by @c18t in https://github.com/c18t/nippo-cli/pull/124
+- chore(deps): bump google.golang.org/api from 0.271.0 to 0.288.0 in the gomod-minor-patch group across 1 directory by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/119
+- chore(deps): bump actions/checkout from 6 to 7 in the github-actions group by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/120
+- chore(deps-dev): bump the npm-dev-dependencies group with 2 updates by @dependabot[bot] in https://github.com/c18t/nippo-cli/pull/121
+
 ## [v0.16.5](https://github.com/c18t/nippo-cli/compare/v0.16.4...v0.16.5) - 2026-07-12
 
 - docs(github): add pull request template for release integration PRs by @c18t in https://github.com/c18t/nippo-cli/pull/113
